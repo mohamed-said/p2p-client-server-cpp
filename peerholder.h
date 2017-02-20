@@ -32,7 +32,7 @@ private:
 public:
 
     static PeerHolder* get_instance();
-    bool register_peer(PeerData &peer);
+    bool register_peer(PeerData *peer);
     PeerData* get_peer_by_username(string&);
 
 };

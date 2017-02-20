@@ -12,10 +12,10 @@ void PeerHolder::init()
     pthread_mutex_init(registration_mutex, NULL);
 }
 
-bool PeerHolder::register_peer(PeerData &peer)
+bool PeerHolder::register_peer(PeerData *peer)
 {
     pthread_mutex_lock(registration_mutex);
-    peers[peer.username] = peer;
+    peers[peer->username] = peer;
     pthread_mutex_unlock(registration_mutex);
 }
 
@@ -27,7 +27,7 @@ PeerData* PeerHolder::get_peer_by_username(string& p_username)
     return peer_data;
 }
 
-static PeerHolder* PeerHolder::get_instance()
+PeerHolder* PeerHolder::get_instance()
 {
     if (peer_holder_instance == NULL)
         peer_holder_instance = new PeerHolder();

@@ -55,7 +55,7 @@ int CommunicationServer::init()
             return PTHREAD_ERROR;
         }
 
-        puts("Client Accepted");
+        puts("Connection Accepted");
     }
     return 0; // success
 }
@@ -69,6 +69,13 @@ void* CommunicationServer::handle_peer_tcp_connection(CommunicationServer *__com
         fprintf(stderr, "ERROR, reading data from socket\n");
     }
 
+
+    /***
+     * TODO
+     * check if the incoming message is a register message or
+     * a peer connection messgae (asking to connect with some peer)
+     * /
+
     PeerData *peer_data = new PeerData();
     /***
      * TODO
@@ -77,6 +84,8 @@ void* CommunicationServer::handle_peer_tcp_connection(CommunicationServer *__com
      */
 
     PeerHolder::get_instance()->register_peer(peer_data);
+
+
 }
 
 /** get peer details to connect with */
