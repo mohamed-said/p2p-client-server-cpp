@@ -85,7 +85,6 @@ void* CommunicationServer::handle_peer_tcp_connection(CommunicationServer *__com
 
     PeerHolder::get_instance()->register_peer(peer_data);
 
-
 }
 
 /** get peer details to connect with */

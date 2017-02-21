@@ -2,7 +2,7 @@ CC= g++
 cflags= -Wall -g
 clibs= -lm -lpthread
 targets= p2p_server
-objs= communicationserver.o peerholder.o main.o
+objs= server/communicationserver.o server/peerholder.o main.o
 
 all: ${targets}
 
