@@ -16,10 +16,12 @@ class PeerClient {
 
 private:
 
-    int tcp_socket_fd, udp_socket_fd, port_number;
+    int tcp_socket_fd, udp_socket_fd;
+    int port_number;
     hostent *server;
     sockaddr_in server_socket_address;
-    string server_name;
+    char *server_name;
+    char *username;
     char tcp_message_buffer[MAX_TCP_MSG_SIZE + 1];
     char udp_message_buffer[MAX_UDP_MSG_SIZE + 1];
 
@@ -30,6 +32,7 @@ public:
     int send_register_message();
     int send_peer_connection_request(string &p_username);
     int send_udp_first_msg();
+    int start_peer_communication();
 
 };
 

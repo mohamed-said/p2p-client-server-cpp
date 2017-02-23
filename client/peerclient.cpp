@@ -1,9 +1,9 @@
 #include "peerclient.h"
 
 
-PeerClient::PeerClient(string &p_server_name, int p_port_number)
+PeerClient::PeerClient(char *p_server_name, int p_port_number)
 {
-    port_number = p_port_number;
+    *port_number = *p_port_number;
     server_name = p_server_name;
 }
 
@@ -30,7 +30,26 @@ int PeerClient::init()
     server_socket_address.sin_family = AF_INET;
     server_socket_address.sin_port = htonl(port_number);
     server_socket_address.sin_addr = *(in_addr*) server->h_addr;
+
+    puts("Please Enter a username (max 20 chars) : ");
+    short chr_count = scanf("%s", &username);
+    while (chr_count > 20)
+    {
+        puts("Please Enter a valid username (max 20 chars) : ");
+        memset(username, 0, 20);
+        chr_count = scanf("%s", &username);
+    }
+    return 0;
 }
+
+int PeerClient::start_peer_communication()
+{
+    /**
+     * run a thread handling the p2p message sending and receiving
+     */
+}
+
+
 
 
 /**
@@ -78,8 +97,12 @@ int PeerClient::send_register_message()
     {
         send_udp_first_msg();
     }
+    else
+    {
+        puts("Server isn't ready for receiving UDP Message\n");
+    }
 
-    printf("Registration Response: %s\n", tcp_message_buffer);
+    printf("Server response upon registration: %s\n", tcp_message_buffer);
 
     close(tcp_socket_fd);
     return 0;
@@ -108,6 +131,26 @@ int PeerClient::send_peer_connection_request(string &p_username)
         fprintf(stderr, "ERROR, connecting to server\n");
         return errno;
     }
+
+    /**
+     * Temporary Logic Implementation
+     * ------------------------------------------------------------------------
+     * We ask the user to enter the name of the peer he wants to connect to
+     * and the server send us back the UDP address of that peer
+     * so that I can start p2p messaging with that user
+     */
+
+    char peer_username[20];
+    puts("Please enter a username to connect to (max 20 chars): ");
+    short chr_count = scanf("%s", &peer_username);
+    while (chr_count > 20)
+    {
+        puts("Please Enter a valid username (max 20 chars) : ");
+        memset(peer_username, 0, 20);
+        chr_count = scanf("%s", &peer_username);
+    }
+
+    /** ----------------------------------------------------------------------- */
 
     strcpy(tcp_message_buffer, p_username.c_str());
 
@@ -146,6 +189,11 @@ int PeerClient::send_udp_first_msg()
         return errno;
     }
 
+    /*
+     * TODO
+     * initialize the udp buffer with the necessary data
+     */
+
     short sendto_error = sendto(udp_socket_fd, udp_message_buffer, MAX_UDP_MSG_SIZE + 1,
            MSG_NOSIGNAL | MSG_CONFIRM,
            (sockaddr*) &server_socket_address, (socklen_t) sizeof(server_socket_address));
@@ -155,6 +203,9 @@ int PeerClient::send_udp_first_msg()
         fprintf(stderr, "ERROR, sending UDP message\n");
         return errno;
     }
+
+    /** Now we can start sending and receiving p2p messages */
+    start_peer_communication();
 
 }
 
