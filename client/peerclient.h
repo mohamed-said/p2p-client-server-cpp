@@ -16,23 +16,30 @@ class PeerClient {
 
 private:
 
-    int tcp_socket_fd, udp_socket_fd;
-    int port_number;
-    hostent *server;
-    sockaddr_in server_socket_address;
+    int tcp_socket_fd; /* TCP socket descriptor */
+    int udp_socket_fd; /* UDP socket descriptor */
+    int port_number;   /* Server port number to connect to */
+    hostent *server;   /* Server address */
+    sockaddr_in tcp_server_socket_address; /* TCP server socket data */
+    sockaddr_in udp_server_socket_address; /* UDP server socket data */
     char *server_name;
     char *username;
     char tcp_message_buffer[MAX_TCP_MSG_SIZE + 1];
     char udp_message_buffer[MAX_UDP_MSG_SIZE + 1];
+    pthread_t send_thread_id;
+    pthread_t recv_thread_id;
+
 
 public:
 
-    PeerClient(string&, int);
-    int init();
-    int send_register_message();
-    int send_peer_connection_request(string &p_username);
-    int send_udp_first_msg();
-    int start_peer_communication();
+    PeerClient(string&, int);           /* Constructor */
+    int init();                         /* Initializes messaging buffers and socket addresses */
+    int send_register_message();        /* TCP register request message */
+    int send_peer_connection_request(); /* TCP connect to peer request message */
+    int send_udp_first_msg();           /* UDP identification first message */
+    int start_peer_communication();     /* starts p2p send/recv threads */
+    void *run_p2p_recv(void*);          /* messages receive thread */
+    void *run_p2p_send(void*);          /* messages send thread */
 
 };
 

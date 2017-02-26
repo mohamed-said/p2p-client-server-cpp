@@ -11,13 +11,10 @@ PeerClient::PeerClient(char *p_server_name, int p_port_number)
 /** returns 0 for success or error_code for errors */
 int PeerClient::init()
 {
-    /**
-     * TODO
-     * init socket data and connect to the server
-     */
+
     memset(tcp_message_buffer, 0, MAX_TCP_MSG_SIZE + 1);
     memset(udp_message_buffer, 0, MAX_UDP_MSG_SIZE + 1);
-    memset(&server_socket_address, 0, sizeof(server_socket_address));
+    memset(&tcp_server_socket_address, 0, sizeof(tcp_server_socket_address));
 
     server = gethostbyname(server_name.c_str());
     if (server == NULL)
@@ -27,9 +24,9 @@ int PeerClient::init()
     }
 
     /** fill the sockaddr_in struct with corresponding data */
-    server_socket_address.sin_family = AF_INET;
-    server_socket_address.sin_port = htonl(port_number);
-    server_socket_address.sin_addr = *(in_addr*) server->h_addr;
+    tcp_server_socket_address.sin_family = AF_INET;
+    tcp_server_socket_address.sin_port = htonl(port_number);
+    tcp_server_socket_address.sin_addr = *(in_addr*) server->h_addr;
 
     puts("Please Enter a username (max 20 chars) : ");
     short chr_count = scanf("%s", &username);
@@ -42,14 +39,81 @@ int PeerClient::init()
     return 0;
 }
 
-int PeerClient::start_peer_communication()
+void *PeerClient::run_p2p_send(void *args)
 {
     /**
-     * run a thread handling the p2p message sending and receiving
+     * Handle p2p receive
      */
+
+    short recv_error = 0;
+    while (true)
+    {
+        recv_error = recvfrom(udp_socket_fd, udp_message_buffer, MAX_UDP_MSG_SIZE + 1,
+                                    MSG_NOSIGNAL | MSG_CONFIRM,
+                                    udp_server_socket_address,
+                                    (socklen_t) sizeof(udp_server_socket_address));
+
+        /**
+         * TODO
+         * should handle a proper way to stop the thread */
+       if (recv_error == -1)
+       {
+            fprintf(stderr, "ERROR, receiving message from peer!!!\n");
+       }
+       printf("%s\n", udp_message_buffer);
+    }
+
+}
+
+void *PeerClient::run_p2p_receive(void *args)
+{
+    short send_error = 0; // success by default
+    while (true)
+    {
+        puts("Enter your message: ");
+
+        /** should check if the message size is correct */
+        scanf("%s", &udp_message_buffer);
+
+        send_error = send(udp_socket_fd, udp_message_buffer, MAX_UDP_MSG_SIZE + 1, MSG_CONFIRM);
+
+        /**
+         * TODO
+         * should handle a proper way to stop the thread !
+         */
+
+        if (send_error == -1)
+        {
+            fprintf(stderr, "ERROR, sending message to peer!!\n");
+        }
+    }
 }
 
 
+int PeerClient::start_peer_communication()
+{
+
+    /**
+     * TODO
+     * run a thread handling the p2p message sending and receiving
+     */
+
+    short pthread_error_send = pthread_create(&send_thread_id, 0, run_p2p_send, 0);
+    if (pthread_error_send)
+    {
+        fprintf(stderr, "ERROR, creating p2p send thread\n");
+        return -1;
+    }
+
+    short pthread_error_recv = pthread_create(&recv_thread_id, 0, run_p2p_recv, 0);
+    if (pthread_error_recv)
+    {
+        fprintf(stderr, "ERROR, creating p2p recv thread\n");
+        return -1;
+    }
+
+    return 0;
+}
 
 
 /**
@@ -67,8 +131,8 @@ int PeerClient::send_register_message()
     }
 
     short connect_error = connect(tcp_socket_fd,
-                                  (sockaddr*) &server_socket_address,
-                                  (socklen_t) sizeof(server_socket_address));
+                                  (sockaddr*) &tcp_server_socket_address,
+                                  (socklen_t) sizeof(tcp_server_socket_address));
 
     if (connect_error)
     {
@@ -105,7 +169,8 @@ int PeerClient::send_register_message()
     printf("Server response upon registration: %s\n", tcp_message_buffer);
 
     close(tcp_socket_fd);
-    return 0;
+
+    return 0; // success
 }
 
 
@@ -114,7 +179,7 @@ int PeerClient::send_register_message()
  * TCP message
  * returns 0 for success or error_code for errors
  */
-int PeerClient::send_peer_connection_request(string &p_username)
+int PeerClient::send_peer_connection_request()
 {
     tcp_socket_fd = socket(AF_INET, SOCK_STREAM, 0);
     if (tcp_socket_fd < 0)
@@ -124,8 +189,8 @@ int PeerClient::send_peer_connection_request(string &p_username)
     }
 
     short connect_error = connect(tcp_socket_fd,
-                                  (sockaddr*) &server_socket_address,
-                                  (socklen_t) sizeof(server_socket_address));
+                                  (sockaddr*) &tcp_server_socket_address,
+                                  (socklen_t) sizeof(tcp_server_socket_address));
     if (connect_error)
     {
         fprintf(stderr, "ERROR, connecting to server\n");
@@ -149,6 +214,7 @@ int PeerClient::send_peer_connection_request(string &p_username)
         memset(peer_username, 0, 20);
         chr_count = scanf("%s", &peer_username);
     }
+    puts("Thanks\n");
 
     /** ----------------------------------------------------------------------- */
 
@@ -192,11 +258,12 @@ int PeerClient::send_udp_first_msg()
     /*
      * TODO
      * initialize the udp buffer with the necessary data
+     * no necessary data, server socket is set using the udp message
      */
 
     short sendto_error = sendto(udp_socket_fd, udp_message_buffer, MAX_UDP_MSG_SIZE + 1,
            MSG_NOSIGNAL | MSG_CONFIRM,
-           (sockaddr*) &server_socket_address, (socklen_t) sizeof(server_socket_address));
+           (sockaddr*) &tcp_server_socket_address, (socklen_t) sizeof(tcp_server_socket_address));
 
     if (sendto_error  == -1)
     {
@@ -204,8 +271,16 @@ int PeerClient::send_udp_first_msg()
         return errno;
     }
 
+    short recv_error = recvfrom(udp_socket_fd, udp_message_buffer, MAX_UDP_MSG_SIZE + 1,
+                                MSG_NOSIGNAL | MSG_CONFIRM,
+                                udp_server_socket_address, (socklen_t) sizeof(udp_server_socket_address));
+    if (recv_error == -1)
+    {
+        fprintf(stderr, "ERROR, receving UDP response from server");
+        return errno;
+    }
     /** Now we can start sending and receiving p2p messages */
     start_peer_communication();
-
+    return 0;
 }
 
