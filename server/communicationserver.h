@@ -17,11 +17,11 @@
 #include "peerdata.h"
 
 #define MAX_MSG_SIZE  2500
-#define SOCKET_ERROR  1000
-#define BIND_ERROR    2000
-#define LISTEN_ERROR  3000
-#define ACCEPT_ERROR  4000
-#define PTHREAD_ERROR 5000
+//#define SOCKET_ERROR  1000
+//#define BIND_ERROR    2000
+//#define LISTEN_ERROR  3000
+//#define ACCEPT_ERROR  4000
+//#define PTHREAD_ERROR 5000
 
 using namespace std;
 
@@ -40,17 +40,16 @@ public:
 
     CommunicationServer(char *p_server_address, int p_port_number);
 
-    /** Init socket connection */
+    /* Init socket connection */
     int init();
 
-    /** thread function to handle incomming connection*/
+    /* thread function to handle incomming connection*/
     static void* handle_peer_tcp_connection(CommunicationServer*);
 
-    /** get peer details to connect with */
+    /* get peer details to connect with */
     PeerData* get_peer_details(string&);
 
 };
 
 #endif // COMMUNICATIONSERVER_H
-
 

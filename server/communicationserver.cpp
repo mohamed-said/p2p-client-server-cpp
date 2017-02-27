@@ -5,7 +5,6 @@ CommunicationServer::CommunicationServer(char *p_server_address, int p_port_numb
     port_number = p_port_number;
     str_server_address.assign(p_server_address);
     peer_address_length = sizeof(struct sockaddr_in);
-    init();
 }
 
 
@@ -21,20 +20,20 @@ int CommunicationServer::init()
     if (socket_fd < 0)
     {
         fprintf(stderr, "ERROR creating socket\n");
-        return SOCKET_ERROR;
+        return errno;
     }
 
     if (bind(socket_fd, (sockaddr*) &server_socket_data, sizeof(server_socket_data)))
     {
         fprintf(stderr, "ERROR binding address\n");
-        return BIND_ERROR;
+        return errno;
     }
 
     short listen_error = listen(socket_fd, 10);
     if (listen_error < 0)
     {
         fprintf(stderr, "ERROR, can't listen on the socket\n");
-        return LISTEN_ERROR;
+        return errno;
     }
 
     pthread_t thread_id;
@@ -45,14 +44,20 @@ int CommunicationServer::init()
         if (accept_error < 0)
         {
             fprintf(stderr, "ERROR accepting client connection\n");
-            return ACCEPT_ERROR;
+            return errno;
         }
 
         short pthread_error = pthread_create(&thread_id, NULL, (void*(*)(void*))handle_peer_tcp_connection, this);
         if (pthread_error)
         {
+            /**
+             * EAGAIN (can't create another thread, max is reached)
+             * EINVAL (The value specified by attr is invalid)
+             * EPERM  (The caller does not have appropriate permission to set the required scheduling parameters or scheduling policy)
+             */
             fprintf(stderr, "ERROR, could not create peer client thread\n");
-            return PTHREAD_ERROR;
+            return pthread_error; // pthread error code
+
         }
 
         puts("Connection Accepted");
@@ -70,6 +75,16 @@ void* CommunicationServer::handle_peer_tcp_connection(CommunicationServer *__com
     }
 
 
+    /**
+      *
+      * Temporary Implementation
+      * Show the comming messages to test that the server
+      * accept incoming connections
+      *
+     */
+
+    printf("%s\n", __communication_server->message_buffer);
+
     /***
      * TODO
      * check if the incoming message is a register message or
@@ -83,7 +98,7 @@ void* CommunicationServer::handle_peer_tcp_connection(CommunicationServer *__com
      * and fill the peer_data object
      */
 
-    PeerHolder::get_instance()->register_peer(peer_data);
+    // PeerHolder::get_instance()->register_peer(peer_data);
 
 }
 
