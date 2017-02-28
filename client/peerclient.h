@@ -33,7 +33,7 @@ private:
 public:
 
     /* Constructor */
-    PeerClient(string&, int);
+    PeerClient(char*, int);
 
     /* Initializes messaging buffers and socket addresses */
     int init();
@@ -51,10 +51,10 @@ public:
     int start_peer_communication();
 
     /* messages receive thread */
-    void *run_p2p_recv(void*);
+    static void *run_p2p_recv(void*);
 
     /* messages send thread */
-    void *run_p2p_send(void*);
+    static void *run_p2p_send(void*);
 
 };
 

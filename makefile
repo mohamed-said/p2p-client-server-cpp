@@ -10,7 +10,7 @@ p2p_server: $(objs)
 	$(CC) $(cflags) $(objs) -o p2p_server $(clibs)
 
 %.o: %.cpp
-	$(CC) -std=c++11 -c -g $< $(clibs)
+	$(CC) -std=c++11 -g -c $< -o $@ $(clibs)
 
 clean:
 	rm -f $(objs) $(targets) *~

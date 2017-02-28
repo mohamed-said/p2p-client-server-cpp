@@ -29,7 +29,7 @@ class CommunicationServer {
 
 private:
 
-    int socket_fd;                                  // socket file descriptor
+    int tcp_socket_fd;                                  // socket file descriptor
     int port_number;                                // server port number
     int peer_address_length;                        // length of peer address
     string str_server_address;                      // server (IP) address

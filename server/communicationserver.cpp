@@ -14,33 +14,45 @@ int CommunicationServer::init()
 {
     server_socket_data.sin_family = AF_INET;
     server_socket_data.sin_addr.s_addr = INADDR_ANY;
-    server_socket_data.sin_port = htonl(port_number);
+    server_socket_data.sin_port = htons(port_number);
 
-    socket_fd = socket(AF_INET, SOCK_DGRAM, 0);
-    if (socket_fd < 0)
+    tcp_socket_fd = socket(AF_INET, SOCK_STREAM, 0);
+    if (tcp_socket_fd < 0)
     {
         fprintf(stderr, "ERROR creating socket\n");
         return errno;
     }
 
-    if (bind(socket_fd, (sockaddr*) &server_socket_data, sizeof(server_socket_data)))
+    //bind(tcp_socket_fd, (sockaddr*) &server_socket_data, sizeof(server_socket_data));
+
+    if (bind(tcp_socket_fd, (sockaddr*) &server_socket_data, (socklen_t) sizeof(server_socket_data)))
     {
         fprintf(stderr, "ERROR binding address\n");
         return errno;
     }
 
-    short listen_error = listen(socket_fd, 10);
+
+    short listen_error = listen(tcp_socket_fd, 10);
     if (listen_error < 0)
     {
         fprintf(stderr, "ERROR, can't listen on the socket\n");
         return errno;
     }
+    else
+    {
+        puts(" * Server is running");
+        printf(" * Address: %s:%d\n", str_server_address.c_str(), port_number);
+    }
+
+
 
     pthread_t thread_id;
 
     while (true)
     {
-        short accept_error = accept(socket_fd, (sockaddr*) &server_socket_data, (socklen_t*) sizeof(server_socket_data));
+        printf("Waiting...\n");
+        short accept_error = accept(tcp_socket_fd, (sockaddr*) &server_socket_data, (socklen_t*) sizeof(server_socket_data));
+        printf("client acceted\n");
         if (accept_error < 0)
         {
             fprintf(stderr, "ERROR accepting client connection\n");
@@ -67,8 +79,8 @@ int CommunicationServer::init()
 
 void* CommunicationServer::handle_peer_tcp_connection(CommunicationServer *__communication_server)
 {
-    int socket_descriptor = __communication_server->socket_fd;
-    short read_error = read(socket_descriptor, __communication_server->message_buffer, MAX_MSG_SIZE);
+    int socket_descriptor = __communication_server->tcp_socket_fd;
+    int16_t read_error = read(socket_descriptor, __communication_server->message_buffer, MAX_MSG_SIZE);
     if (read_error < 0 || read_error < MAX_MSG_SIZE)
     {
         fprintf(stderr, "ERROR, reading data from socket\n");
@@ -85,6 +97,13 @@ void* CommunicationServer::handle_peer_tcp_connection(CommunicationServer *__com
 
     printf("%s\n", __communication_server->message_buffer);
 
+    strcpy(__communication_server->message_buffer, "MESSAGE RECEIVED");
+
+    int16_t send_error = send(__communication_server->tcp_socket_fd, __communication_server->message_buffer, MAX_MSG_SIZE + 1, MSG_NOSIGNAL);
+    if (send_error == -1)
+    {
+        fprintf(stderr, "ERROR, sending response to client");
+    }
     /***
      * TODO
      * check if the incoming message is a register message or
