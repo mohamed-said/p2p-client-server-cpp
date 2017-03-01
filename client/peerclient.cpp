@@ -153,9 +153,9 @@ int PeerClient::send_register_message()
     }
 
     short recv_error = recv(tcp_socket_fd, tcp_message_buffer, MAX_TCP_MSG_SIZE + 1, MSG_NOSIGNAL);
-    if (recv_error || recv_error == -1)
+    if (recv_error == -1)
     {
-        fprintf(stderr, "ERROR, readeing response from serve\n");
+        fprintf(stderr, "ERROR, readeing response from server\n");
         return errno;
     }
     
