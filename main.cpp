@@ -12,15 +12,11 @@ int main()
     int port_number = 4444;
 
 
-    cout << sizeof(short) << " " << sizeof(int) << " " << sizeof(long) << endl;
-    cout << ntohl(port_number) << endl;
-    cout << ntohs(port_number) << endl;
-
     CommunicationServer *comm_Server = new CommunicationServer(server_name, port_number);
     int ret = comm_Server->init();
     if (ret)
     {
-        printf(" * Failed to start the server\n * Exit Code is: %d\n", ret);
+        printf(" * Server Crashed\n * Exit Code is: %d\n", ret);
     }
 
     return 0;
