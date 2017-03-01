@@ -91,6 +91,10 @@ void *PeerClient::run_p2p_recv(void *args)
 */
 }
 
+int PeerClient::send_first_udp_message()
+{
+
+}
 
 int PeerClient::start_peer_communication()
 {
@@ -160,23 +164,17 @@ int PeerClient::send_register_message()
     }
     
     /* temp  */
-    printf("%s\n", tcp_message_buffer);
-    return 0;
-
-    if (strcmp("SENDFIRSTUDP", tcp_message_buffer) == 0)
-    {
-        send_udp_first_msg();
-    }
-    else
-    {
-        puts("Server isn't ready for receiving UDP Message\n");
-    }
-
-    printf("Server response upon registration: %s\n", tcp_message_buffer);
+    printf("Server Sent: %s\n", tcp_message_buffer);
 
     close(tcp_socket_fd);
-
-    return 0; // success
+    
+    if (strcmp("SENDFIRSTUDP", tcp_message_buffer) == 0)
+    {
+        puts(" * Server ready to receive first UDP message");
+        return 0;
+    }
+    puts(" * Server isn't ready to receive UDP message\n");
+    return -1;
 }
 
 
