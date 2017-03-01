@@ -4,7 +4,6 @@
 CommunicationServer::CommunicationServer(char *p_server_address, int p_port_number) {
     port_number = p_port_number;
     str_server_address.assign(p_server_address);
-    peer_address_length = sizeof(struct sockaddr_in);
 }
 
 
@@ -16,8 +15,10 @@ int CommunicationServer::init()
     server_socket_data.sin_addr.s_addr = INADDR_ANY;
     server_socket_data.sin_port = htons(port_number);
 
-    tcp_socket_fd = socket(AF_INET, SOCK_STREAM, 0);
-    if (tcp_socket_fd < 0)
+    socket_address_length = sizeof(server_socket_data);
+
+    tcp_server_socket_fd = socket(AF_INET, SOCK_STREAM, 0);
+    if (tcp_server_socket_fd < 0)
     {
         fprintf(stderr, "ERROR creating socket\n");
         return errno;
@@ -25,14 +26,14 @@ int CommunicationServer::init()
 
     //bind(tcp_socket_fd, (sockaddr*) &server_socket_data, sizeof(server_socket_data));
 
-    if (bind(tcp_socket_fd, (sockaddr*) &server_socket_data, (socklen_t) sizeof(server_socket_data)))
+    if (bind(tcp_server_socket_fd, (sockaddr*) &server_socket_data, (socklen_t) sizeof(server_socket_data)))
     {
         fprintf(stderr, "ERROR binding address\n");
         return errno;
     }
 
 
-    short listen_error = listen(tcp_socket_fd, 10);
+    short listen_error = listen(tcp_server_socket_fd, 10);
     if (listen_error < 0)
     {
         fprintf(stderr, "ERROR, can't listen on the socket\n");
@@ -48,18 +49,18 @@ int CommunicationServer::init()
 
     pthread_t thread_id;
 
+
     while (true)
     {
         printf("Waiting...\n");
-        short accept_error = accept(tcp_socket_fd, (sockaddr*) &server_socket_data, (socklen_t*) sizeof(server_socket_data));
-        printf("client acceted\n");
-        if (accept_error < 0)
+        tcp_client_socket_fd = accept(tcp_server_socket_fd, (sockaddr*) &server_socket_data, &socket_address_length);
+        if (tcp_client_socket_fd < 0)
         {
             fprintf(stderr, "ERROR accepting client connection\n");
             return errno;
         }
 
-        short pthread_error = pthread_create(&thread_id, NULL, (void*(*)(void*))handle_peer_tcp_connection, this);
+        short pthread_error = pthread_create(&thread_id, NULL, (void*(*)(void*))handle_peer_tcp_connection, (void*) &tcp_client_socket_fd);
         if (pthread_error)
         {
             /**
@@ -77,15 +78,21 @@ int CommunicationServer::init()
     return 0; // success
 }
 
-void* CommunicationServer::handle_peer_tcp_connection(CommunicationServer *__communication_server)
+void* CommunicationServer::handle_peer_tcp_connection(void* client_socket)
 {
-    int socket_descriptor = __communication_server->tcp_socket_fd;
-    int16_t read_error = read(socket_descriptor, __communication_server->message_buffer, MAX_MSG_SIZE);
-    if (read_error < 0 || read_error < MAX_MSG_SIZE)
-    {
-        fprintf(stderr, "ERROR, reading data from socket\n");
-    }
+    puts(" *** So far so good !!!");
+    char message[MAX_MSG_SIZE + 1];
+    puts(" *** Got here !!");
+    int16_t socket_descriptor = *(int16_t*)client_socket;
 
+    puts("So what??");
+
+    int16_t read_error = read(socket_descriptor, message, sizeof(message));
+    if (read_error < 0)
+    {
+        fprintf(stderr, " * ERROR, reading message from the client\n");
+        printf(" * (errno) -> %d\n", errno);
+    }
 
     /**
       *
@@ -95,14 +102,19 @@ void* CommunicationServer::handle_peer_tcp_connection(CommunicationServer *__com
       *
      */
 
-    printf("%s\n", __communication_server->message_buffer);
+    printf("Client Sent: %s\n", message);
 
-    strcpy(__communication_server->message_buffer, "MESSAGE RECEIVED");
+    strcpy(message, "SENDFIRSTUDP");
 
-    int16_t send_error = send(__communication_server->tcp_socket_fd, __communication_server->message_buffer, MAX_MSG_SIZE + 1, MSG_NOSIGNAL);
+    int16_t send_error = send(socket_descriptor, message, sizeof(message), MSG_NOSIGNAL);
     if (send_error == -1)
     {
-        fprintf(stderr, "ERROR, sending response to client");
+        fprintf(stderr, " * ERROR, sending response to client\n");
+        printf(" * (errno) -> %d\n", errno);
+    }
+    else
+    {
+        puts(" * Responded Successfully");
     }
     /***
      * TODO
