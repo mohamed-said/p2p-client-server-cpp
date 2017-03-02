@@ -113,12 +113,13 @@ void* CommunicationServer::handle_peer_tcp_connection(CommunicationServer *__ser
     }
 
     __server_obj->socket_size = sizeof(__server_obj->server_socket_data);
-    int16_t recv_from_error = recvfrom(socket_descriptor,                               /* socket file */
+    int16_t recv_from_error = recvfrom(__server_obj->tcp_server_socket_fd,              /* socket file */
                                        __server_obj->message_buffer,                    /* buffer to receive into */
                                        sizeof(__server_obj->message_buffer),            /* size of buffer */
                                        MSG_CONFIRM,                                     /* flags */
                                        (sockaddr*) &__server_obj->server_socket_data,   /* socket address */
                                        &__server_obj->socket_size);                     /* size of socket address */
+
 
     if (recv_from_error == -1)
     {
@@ -126,6 +127,7 @@ void* CommunicationServer::handle_peer_tcp_connection(CommunicationServer *__ser
         printf(" * (errno) -> %d\n", errno);
     }
 
+    printf("Client username: %s\n", __server_obj->message_buffer);
 
     PeerData *peer_data = new PeerData();
     peer_data->client_sockert_address = __server_obj->server_socket_data;
