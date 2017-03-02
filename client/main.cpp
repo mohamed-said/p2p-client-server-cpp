@@ -13,7 +13,9 @@ int main()
   int port_number = 4444;
 
   puts("Please Enter a username (max 20 chars) : ");
-  char *username;
+  char *username = "kogo";
+  
+  /*
   short chr_count = scanf("%s", username);
   while (chr_count > 20)
   {
@@ -21,7 +23,9 @@ int main()
       memset(username, 0, 20);
       chr_count = scanf("%s", username);
   }
+  */
 
+  
   PeerClient *peerclient = new PeerClient(server_name, port_number, username);
 
   int ret_init = peerclient->init();
@@ -54,7 +58,7 @@ int main()
   {
       puts("First UDP message sent successfully");
   }
-
+  puts("7a!!");
 
   return 0;
 }

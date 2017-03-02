@@ -33,7 +33,7 @@ private:
 public:
 
     /* Constructor */
-    PeerClient(char*, int);
+    PeerClient(char*, int, char*);
 
     /* Initializes messaging buffers and socket addresses */
     int init();
