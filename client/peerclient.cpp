@@ -248,6 +248,7 @@ int PeerClient::send_peer_connection_request()
  */
 int PeerClient::send_udp_first_msg()
 {
+    puts(" ** Sending UDP first message");
     /** creating a UDP socket file descriptor */
     udp_socket_fd = socket(AF_INET, SOCK_DGRAM, 0);
     if (udp_socket_fd < 0)
@@ -256,11 +257,15 @@ int PeerClient::send_udp_first_msg()
         return errno;
     }
 
+    puts(" ** UDP socket created");
+
     strcpy(udp_message_buffer, username);
 
     short sendto_error = sendto(udp_socket_fd, udp_message_buffer, MAX_UDP_MSG_SIZE + 1,
            MSG_NOSIGNAL | MSG_CONFIRM,
            (sockaddr*) &udp_server_socket_address, sizeof(udp_server_socket_address));
+
+    puts(" ** UDP message sent");
 
     if (sendto_error  == -1)
     {
