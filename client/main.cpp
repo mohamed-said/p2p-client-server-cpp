@@ -12,18 +12,47 @@ int main()
   char* server_name = "192.168.1.106";
   int port_number = 4444;
 
-  PeerClient *peerclient = new PeerClient(server_name, port_number);
-  int ret = peerclient->init();
-  if (ret)
+  puts("Please Enter a username (max 20 chars) : ");
+  char *username;
+  short chr_count = scanf("%s", username);
+  while (chr_count > 20)
   {
-    fprintf(stderr, " * Failed to init buffers and socket data\n");
-    return 0;
+      puts("Please Enter a valid username (max 20 chars) : ");
+      memset(username, 0, 20);
+      chr_count = scanf("%s", username);
   }
-  int ret2 = peerclient->send_register_message();
-  if (ret2)
+
+  PeerClient *peerclient = new PeerClient(server_name, port_number, username);
+
+  int ret_init = peerclient->init();
+  if (ret_init)
   {
-    printf(" * Failed to send message \n * Exit code is: %d\n", ret2);
-    return 0;
+      fprintf(stderr, " * Failed to init buffers and socket data\n * Exit code is: %d\n", ret_init);
+  }
+  else
+  {
+      puts("Peer buffers initialized successfully");
+  }
+
+
+  int ret_reg_msg = peerclient->send_register_message();
+  if (ret_reg_msg)
+  {
+    printf(" * Failed to send message \n * Exit code is: %d\n", ret_reg_msg);
+  }
+  else
+  {
+      puts("Register messgae sent successfully");
+  }
+
+  int ret_frst_udp = peerclient->send_udp_first_msg();
+  if (ret_frst_udp)
+  {
+      printf(" * Failed to send first UDP messgae\n * Exit code is: %d\n", ret_frst_udp);
+  }
+  else
+  {
+      puts("First UDP message sent successfully");
   }
 
 

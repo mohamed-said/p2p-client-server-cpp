@@ -25,3 +25,4 @@ P2P.pro
 README.md
 main.cpp
 client/peerclient.cpp
+client/main.cpp

@@ -11,11 +11,9 @@ using namespace std;
 struct PeerData {
 
     int socket_fd;
-    short port_number;
     int peer_id;
-    string server_address;
     string username;
-    sockaddr_in server_sockert_address;
+    sockaddr_in client_sockert_address;
 
 };
 

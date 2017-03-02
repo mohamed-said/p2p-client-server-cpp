@@ -60,7 +60,7 @@ int CommunicationServer::init()
             return errno;
         }
 
-        short pthread_error = pthread_create(&thread_id, NULL, (void*(*)(void*))handle_peer_tcp_connection, (void*) &tcp_client_socket_fd);
+        short pthread_error = pthread_create(&thread_id, NULL, (void*(*)(void*))handle_peer_tcp_connection, this);
         if (pthread_error)
         {
             /**
@@ -78,35 +78,30 @@ int CommunicationServer::init()
     return 0; // success
 }
 
-void* CommunicationServer::handle_peer_tcp_connection(void* client_socket)
+void* CommunicationServer::handle_peer_tcp_connection(CommunicationServer *__server_obj)
 {
-    puts(" *** So far so good !!!");
-    char message[MAX_MSG_SIZE + 1];
-    puts(" *** Got here !!");
-    int16_t socket_descriptor = *(int16_t*)client_socket;
+    int16_t socket_descriptor = __server_obj->tcp_client_socket_fd;
 
-    puts("So what??");
-
-    int16_t read_error = read(socket_descriptor, message, sizeof(message));
+    int16_t read_error = read(socket_descriptor, __server_obj->message_buffer, sizeof(__server_obj->message_buffer));
     if (read_error < 0)
     {
         fprintf(stderr, " * ERROR, reading message from the client\n");
         printf(" * (errno) -> %d\n", errno);
     }
 
-    /**
-      *
-      * Temporary Implementation
-      * Show the comming messages to test that the server
-      * accept incoming connections
-      *
+
+    printf("Client Sent: %s\n", __server_obj->message_buffer);
+
+    /***
+     * TODO
+     * check if the incoming message is a register message or
+     * a peer connection messgae (asking to connect with some peer)
      */
 
-    printf("Client Sent: %s\n", message);
 
-    strcpy(message, "SENDFIRSTUDP");
+    strcpy(__server_obj->message_buffer, "SENDFIRSTUDP");
 
-    int16_t send_error = send(socket_descriptor, message, sizeof(message), MSG_NOSIGNAL);
+    int16_t send_error = send(socket_descriptor, __server_obj->message_buffer, sizeof(__server_obj->message_buffer), MSG_NOSIGNAL);
     if (send_error == -1)
     {
         fprintf(stderr, " * ERROR, sending response to client\n");
@@ -114,22 +109,38 @@ void* CommunicationServer::handle_peer_tcp_connection(void* client_socket)
     }
     else
     {
-        puts(" * Responded Successfully");
+        puts(" * Triggered First UDP");
     }
-    /***
-     * TODO
-     * check if the incoming message is a register message or
-     * a peer connection messgae (asking to connect with some peer)
-     * /
+
+    __server_obj->socket_size = sizeof(__server_obj->server_socket_data);
+    int16_t recv_from_error = recvfrom(socket_descriptor,                               /* socket file */
+                                       __server_obj->message_buffer,                    /* buffer to receive into */
+                                       sizeof(__server_obj->message_buffer),            /* size of buffer */
+                                       MSG_CONFIRM,                                     /* flags */
+                                       (sockaddr*) &__server_obj->server_socket_data,   /* socket address */
+                                       &__server_obj->socket_size);                     /* size of socket address */
+
+    if (recv_from_error == -1)
+    {
+        fprintf(stderr, " * ERROR, receiving first UDP message");
+        printf(" * (errno) -> %d\n", errno);
+    }
+
 
     PeerData *peer_data = new PeerData();
-    /***
-     * TODO
-     * parse the message buffer that's filled in the read method
-     * and fill the peer_data object
-     */
+    peer_data->client_sockert_address = __server_obj->server_socket_data;
+    peer_data->username = __server_obj->message_buffer;
 
     // PeerHolder::get_instance()->register_peer(peer_data);
+
+    strcpy(__server_obj->message_buffer, "REGISTERED SUCCESSFULLY");
+
+    send_error = send(socket_descriptor, __server_obj->message_buffer, sizeof(__server_obj->message_buffer), MSG_NOSIGNAL);
+    if (send_error == -1)
+    {
+        fprintf(stderr, " * ERROR, sending registration response\n");
+        printf(" * (errno) -> %d\n", errno);
+    }
 
 }
 

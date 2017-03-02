@@ -31,6 +31,7 @@ private:
 
     int16_t tcp_server_socket_fd;                   // socket file descriptor
     int16_t tcp_client_socket_fd;                   // socket file descriptor to read data upon
+    socklen_t socket_size;
     int port_number;                                // server port number
     socklen_t socket_address_length;                // length of peer address
     string str_server_address;                      // server (IP) address
@@ -45,7 +46,7 @@ public:
     int init();
 
     /* thread function to handle incomming connection*/
-    static void* handle_peer_tcp_connection(void*);
+    static void* handle_peer_tcp_connection(CommunicationServer*);
 
     /* get peer details to connect with */
     PeerData* get_peer_details(string&);
