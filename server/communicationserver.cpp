@@ -20,9 +20,18 @@ int CommunicationServer::init()
     tcp_server_socket_fd = socket(AF_INET, SOCK_STREAM, 0);
     if (tcp_server_socket_fd < 0)
     {
-        fprintf(stderr, "ERROR creating socket\n");
+        fprintf(stderr, "ERROR creating TCP socket\n");
         return errno;
     }
+
+    udp_server_socket_fd = socket(AF_INET, SOCK_DGRAM, 0);
+    if (udp_server_socket_fd < 0)
+    {
+        fprintf(stderr, "ERROR, creating UDP socket\n");
+        return errno;
+    }
+
+    memset(&client_socket_data, 0, sizeof(client_socket_data));
 
     //bind(tcp_socket_fd, (sockaddr*) &server_socket_data, sizeof(server_socket_data));
 
@@ -113,18 +122,25 @@ void* CommunicationServer::handle_peer_tcp_connection(CommunicationServer *__ser
     }
 
     __server_obj->socket_size = sizeof(__server_obj->server_socket_data);
-    int16_t recv_from_error = recvfrom(__server_obj->tcp_server_socket_fd,              /* socket file */
+
+    int16_t recv_from_len = recvfrom(__server_obj->udp_server_socket_fd,                /* socket file */
                                        __server_obj->message_buffer,                    /* buffer to receive into */
                                        sizeof(__server_obj->message_buffer),            /* size of buffer */
                                        MSG_CONFIRM,                                     /* flags */
-                                       (sockaddr*) &__server_obj->server_socket_data,   /* socket address */
+                                       (sockaddr*) &__server_obj->client_socket_data,   /* socket address */
                                        &__server_obj->socket_size);                     /* size of socket address */
 
 
-    if (recv_from_error == -1)
+    printf("RecvFrom Len: %d\n", recv_from_len);
+
+    if (recv_from_len == -1)
     {
         fprintf(stderr, " * ERROR, receiving first UDP message");
         printf(" * (errno) -> %d\n", errno);
+    }
+    else
+    {
+        puts("UDP Message received!!!");
     }
 
     printf("Client username: %s\n", __server_obj->message_buffer);

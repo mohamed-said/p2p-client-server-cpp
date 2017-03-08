@@ -18,6 +18,8 @@ int PeerClient::init()
     memset(&tcp_server_socket_address, 0, sizeof(tcp_server_socket_address));
     memset(&udp_server_socket_address, 0, sizeof(udp_server_socket_address));
 
+    socket_length = sizeof(udp_server_socket_address);
+
     server = gethostbyname(server_name);
     if (server == NULL)
     {
@@ -262,16 +264,16 @@ int PeerClient::send_udp_first_msg()
     strcpy(udp_message_buffer, username);
 
     short sendto_error = sendto(udp_socket_fd, udp_message_buffer, MAX_UDP_MSG_SIZE + 1,
-           MSG_NOSIGNAL | MSG_CONFIRM,
-           (sockaddr*) &udp_server_socket_address, sizeof(udp_server_socket_address));
+           0, (sockaddr*) &udp_server_socket_address, socket_length);
 
-    puts(" ** UDP message sent");
 
     if (sendto_error  == -1)
     {
         fprintf(stderr, " * ERROR, sending UDP message\n");
         return errno;
     }
+
+    puts(" ** UDP message sent");
 
     /***
      * TODO

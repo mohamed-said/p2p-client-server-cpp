@@ -20,8 +20,11 @@ private:
     int udp_socket_fd;                      /* UDP socket descriptor */
     int port_number;                        /* Server port number to connect to */
     hostent *server;                        /* Server address */
+
     sockaddr_in tcp_server_socket_address;  /* TCP server socket data */
     sockaddr_in udp_server_socket_address;  /* UDP server socket data */
+    int socket_length;
+
     char *server_name;
     char *username;
     char tcp_message_buffer[MAX_TCP_MSG_SIZE + 1];

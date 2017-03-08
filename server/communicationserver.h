@@ -29,14 +29,19 @@ class CommunicationServer {
 
 private:
 
-    int16_t tcp_server_socket_fd;                   // socket file descriptor
-    int16_t tcp_client_socket_fd;                   // socket file descriptor to read data upon
+    int16_t tcp_server_socket_fd;                   // TCP server socket file descriptor
+    int16_t udp_server_socket_fd;                   // UDP server socket file descriptor
+
+    int16_t tcp_client_socket_fd;                   // TCP client socket file descriptor to read data upon
+
     socklen_t socket_size;                          // size of sockaddr_in struct
     int port_number;                                // server port number
     socklen_t socket_address_length;                // length of peer address
     string str_server_address;                      // server (IP) address
+
     sockaddr_in server_socket_data;                 // socket address struct holding socket family type, port and ip address
     sockaddr_in client_socket_data;                 // socket address struct holding client address data
+
     char message_buffer[MAX_MSG_SIZE + 1];          // buffer that will receive the incoming data
 
 public:
