@@ -9,7 +9,7 @@ using namespace std;
 int main()
 {
 
-  char* server_name = "192.168.1.106";
+  char* server_name = "127.0.0.1";
   int16_t server_tcp_port_number = 4444;
   int16_t server_udp_port_number = 5555;
 
@@ -59,7 +59,6 @@ int main()
   {
       puts("First UDP message sent successfully");
   }
-  puts("7a!!");
 
   return 0;
 }

@@ -119,7 +119,7 @@ int PeerClient::send_register_message()
     /* temp  */
     printf("Server Sent: %s\n", tcp_message_buffer);
 
-    close(tcp_socket_fd);
+//    close(tcp_socket_fd);
     
     if (strcmp("SENDFIRSTUDP", tcp_message_buffer) == 0)
     {
@@ -197,7 +197,6 @@ int PeerClient::send_peer_connection_request()
 
 
 
-
 /**
  * UDP message
  * returns 0 for success and error_code for errors
@@ -234,6 +233,7 @@ int PeerClient::send_udp_first_msg()
      * check if I will receive the response in TCP or UDP
      * I recommend TCP ,, because it's a control message
      */
+
 
     int16_t recv_error = recv(tcp_socket_fd, udp_message_buffer, MAX_UDP_MSG_SIZE + 1, MSG_NOSIGNAL);
     if (recv_error == -1)

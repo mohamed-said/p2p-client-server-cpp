@@ -43,6 +43,12 @@ int CommunicationServer::init()
     }
 
 
+    int16_t udp_init_error = init_udp_server();
+    if (udp_init_error)
+    {
+        fprintf(stderr, "ERROR, binding UDP server\n");
+        printf(" * (errno) -> %d\n", udp_init_error);
+    }
 
     pthread_t thread_id;
 
@@ -87,7 +93,7 @@ int CommunicationServer::init_udp_server()
     memset(&client_udp_socket_data, 0, socket_address_size);
 
     server_udp_socket_data.sin_family = AF_INET;
-    server_udp_socket_data.sin_port = udp_port_number;
+    server_udp_socket_data.sin_port = htons(udp_port_number);
     server_udp_socket_data.sin_addr.s_addr = INADDR_ANY;
 
     if ( bind(udp_server_socket_fd, (sockaddr*) &server_udp_socket_data, socket_address_size) )
@@ -134,14 +140,6 @@ void* CommunicationServer::handle_peer_tcp_connection(CommunicationServer *__ser
         puts(" * Triggered First UDP");
     }
 
-
-    int16_t udp_init_error = __server_obj->init_udp_server();
-    if (udp_init_error)
-    {
-        fprintf(stderr, "ERROR, binding UDP server\n");
-        printf(" * (errno) -> %d\n", udp_init_error);
-    }
-
     int16_t recv_from_len = recvfrom(__server_obj->udp_server_socket_fd,                   /* socket file */
                                        __server_obj->message_buffer,                       /* buffer to receive into */
                                        sizeof(__server_obj->message_buffer),               /* size of buffer */
@@ -164,15 +162,19 @@ void* CommunicationServer::handle_peer_tcp_connection(CommunicationServer *__ser
 
     printf("Client username: %s\n", __server_obj->message_buffer);
 
-    PeerData *peer_data = new PeerData();
-    peer_data->client_sockert_address = __server_obj->server_tcp_socket_data;
-    peer_data->username = __server_obj->message_buffer;
+//    PeerData *peer_data = new PeerData();
+//    peer_data->client_sockert_address = __server_obj->server_tcp_socket_data;
+//    peer_data->username = __server_obj->message_buffer;
 
     // PeerHolder::get_instance()->register_peer(peer_data);
 
     strcpy(__server_obj->message_buffer, "REGISTERED SUCCESSFULLY");
 
-    send_error = send(socket_descriptor, __server_obj->message_buffer, sizeof(__server_obj->message_buffer), MSG_NOSIGNAL);
+    send_error = send(socket_descriptor,
+                      __server_obj->message_buffer,
+                      sizeof(__server_obj->message_buffer),
+                      MSG_NOSIGNAL);
+
     if (send_error == -1)
     {
         fprintf(stderr, " * ERROR, sending registration response\n");
