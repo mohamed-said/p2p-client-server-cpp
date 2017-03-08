@@ -1,7 +1,7 @@
 #include <iostream>
 #include <time.h>
 
-#include "server/communicationserver.h"
+#include "communicationserver.h"
 
 using namespace std;
 
