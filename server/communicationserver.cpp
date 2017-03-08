@@ -1,9 +1,11 @@
 #include "communicationserver.h"
 
 
-CommunicationServer::CommunicationServer(char *p_server_address, int p_port_number) {
-    port_number = p_port_number;
+CommunicationServer::CommunicationServer(char *p_server_address, int16_t p_tcp_port_number, int16_t p_udp_port_number) {
+    tcp_port_number = p_tcp_port_number;
+    udp_port_number = p_udp_port_number;
     str_server_address.assign(p_server_address);
+    socket_address_size = sizeof(server_tcp_socket_data);
 }
 
 
@@ -11,11 +13,9 @@ CommunicationServer::CommunicationServer(char *p_server_address, int p_port_numb
 
 int CommunicationServer::init()
 {
-    server_socket_data.sin_family = AF_INET;
-    server_socket_data.sin_addr.s_addr = INADDR_ANY;
-    server_socket_data.sin_port = htons(port_number);
-
-    socket_address_length = sizeof(server_socket_data);
+    server_tcp_socket_data.sin_family = AF_INET;
+    server_tcp_socket_data.sin_port = htons(tcp_port_number);
+    server_tcp_socket_data.sin_addr.s_addr = INADDR_ANY;
 
     tcp_server_socket_fd = socket(AF_INET, SOCK_STREAM, 0);
     if (tcp_server_socket_fd < 0)
@@ -24,25 +24,13 @@ int CommunicationServer::init()
         return errno;
     }
 
-    udp_server_socket_fd = socket(AF_INET, SOCK_DGRAM, 0);
-    if (udp_server_socket_fd < 0)
+    if (bind(tcp_server_socket_fd, (sockaddr*) &server_tcp_socket_data, socket_address_size))
     {
-        fprintf(stderr, "ERROR, creating UDP socket\n");
+        fprintf(stderr, "ERROR binding TCP address\n");
         return errno;
     }
 
-    memset(&client_socket_data, 0, sizeof(client_socket_data));
-
-    //bind(tcp_socket_fd, (sockaddr*) &server_socket_data, sizeof(server_socket_data));
-
-    if (bind(tcp_server_socket_fd, (sockaddr*) &server_socket_data, (socklen_t) sizeof(server_socket_data)))
-    {
-        fprintf(stderr, "ERROR binding address\n");
-        return errno;
-    }
-
-
-    short listen_error = listen(tcp_server_socket_fd, 10);
+    int16_t listen_error = listen(tcp_server_socket_fd, 10);
     if (listen_error < 0)
     {
         fprintf(stderr, "ERROR, can't listen on the socket\n");
@@ -51,25 +39,24 @@ int CommunicationServer::init()
     else
     {
         puts(" * Server is running");
-        printf(" * Address: %s:%d\n", str_server_address.c_str(), port_number);
+        printf(" * Address: %s:%d\n", str_server_address.c_str(), tcp_port_number);
     }
 
 
 
     pthread_t thread_id;
 
-
     while (true)
     {
         printf("Waiting...\n");
-        tcp_client_socket_fd = accept(tcp_server_socket_fd, (sockaddr*) &server_socket_data, &socket_address_length);
+        tcp_client_socket_fd = accept(tcp_server_socket_fd, (sockaddr*) &server_tcp_socket_data, &socket_address_size);
         if (tcp_client_socket_fd < 0)
         {
             fprintf(stderr, "ERROR accepting client connection\n");
             return errno;
         }
 
-        short pthread_error = pthread_create(&thread_id, NULL, (void*(*)(void*))handle_peer_tcp_connection, this);
+        int16_t pthread_error = pthread_create(&thread_id, NULL, (void*(*)(void*))handle_peer_tcp_connection, this);
         if (pthread_error)
         {
             /**
@@ -85,6 +72,32 @@ int CommunicationServer::init()
         puts("Connection Accepted");
     }
     return 0; // success
+}
+
+int CommunicationServer::init_udp_server()
+{
+    udp_server_socket_fd = socket(AF_INET, SOCK_DGRAM, 0);
+    if (udp_server_socket_fd < 0)
+    {
+        fprintf(stderr, "ERROR, creating UDP socket\n");
+        return errno;
+    }
+
+    memset(&server_udp_socket_data, 0, socket_address_size);
+    memset(&client_udp_socket_data, 0, socket_address_size);
+
+    server_udp_socket_data.sin_family = AF_INET;
+    server_udp_socket_data.sin_port = udp_port_number;
+    server_udp_socket_data.sin_addr.s_addr = INADDR_ANY;
+
+    if ( bind(udp_server_socket_fd, (sockaddr*) &server_udp_socket_data, socket_address_size) )
+    {
+        fprintf(stderr, "ERROR, binding UDP address\n");
+        return errno;
+    }
+
+    return 0; // success
+
 }
 
 void* CommunicationServer::handle_peer_tcp_connection(CommunicationServer *__server_obj)
@@ -121,14 +134,20 @@ void* CommunicationServer::handle_peer_tcp_connection(CommunicationServer *__ser
         puts(" * Triggered First UDP");
     }
 
-    __server_obj->socket_size = sizeof(__server_obj->server_socket_data);
 
-    int16_t recv_from_len = recvfrom(__server_obj->udp_server_socket_fd,                /* socket file */
-                                       __server_obj->message_buffer,                    /* buffer to receive into */
-                                       sizeof(__server_obj->message_buffer),            /* size of buffer */
-                                       MSG_CONFIRM,                                     /* flags */
-                                       (sockaddr*) &__server_obj->client_socket_data,   /* socket address */
-                                       &__server_obj->socket_size);                     /* size of socket address */
+    int16_t udp_init_error = __server_obj->init_udp_server();
+    if (udp_init_error)
+    {
+        fprintf(stderr, "ERROR, binding UDP server\n");
+        printf(" * (errno) -> %d\n", udp_init_error);
+    }
+
+    int16_t recv_from_len = recvfrom(__server_obj->udp_server_socket_fd,                   /* socket file */
+                                       __server_obj->message_buffer,                       /* buffer to receive into */
+                                       sizeof(__server_obj->message_buffer),               /* size of buffer */
+                                       MSG_CONFIRM,                                        /* flags */
+                                       (sockaddr*) &__server_obj->client_udp_socket_data,  /* socket address */
+                                       &__server_obj->socket_address_size);                /* size of socket address */
 
 
     printf("RecvFrom Len: %d\n", recv_from_len);
@@ -146,7 +165,7 @@ void* CommunicationServer::handle_peer_tcp_connection(CommunicationServer *__ser
     printf("Client username: %s\n", __server_obj->message_buffer);
 
     PeerData *peer_data = new PeerData();
-    peer_data->client_sockert_address = __server_obj->server_socket_data;
+    peer_data->client_sockert_address = __server_obj->server_tcp_socket_data;
     peer_data->username = __server_obj->message_buffer;
 
     // PeerHolder::get_instance()->register_peer(peer_data);
@@ -161,6 +180,7 @@ void* CommunicationServer::handle_peer_tcp_connection(CommunicationServer *__ser
     }
 
 }
+
 
 /** get peer details to connect with */
 PeerData* CommunicationServer::get_peer_details(string& p_username)

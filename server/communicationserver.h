@@ -34,22 +34,28 @@ private:
 
     int16_t tcp_client_socket_fd;                   // TCP client socket file descriptor to read data upon
 
-    socklen_t socket_size;                          // size of sockaddr_in struct
-    int port_number;                                // server port number
-    socklen_t socket_address_length;                // length of peer address
+    socklen_t socket_address_size;                  // size of sockaddr_in struct
+
+    int16_t tcp_port_number;                        // tcp server port number
+    int16_t udp_port_number;                        // udp server port number
+
     string str_server_address;                      // server (IP) address
 
-    sockaddr_in server_socket_data;                 // socket address struct holding socket family type, port and ip address
-    sockaddr_in client_socket_data;                 // socket address struct holding client address data
+    sockaddr_in server_tcp_socket_data;             // socket address struct holding server TCP data
+    sockaddr_in server_udp_socket_data;             // socket address struct holding server UDP data
+    sockaddr_in client_udp_socket_data;             // socket address struct holding client UDP data
 
     char message_buffer[MAX_MSG_SIZE + 1];          // buffer that will receive the incoming data
 
 public:
 
-    CommunicationServer(char *p_server_address, int p_port_number);
+    CommunicationServer(char*, int16_t, int16_t);
 
     /* Init socket connection */
     int init();
+
+    /* Initializes a UDP server */
+    int init_udp_server();
 
     /* thread function to handle incomming connection*/
     static void* handle_peer_tcp_connection(CommunicationServer*);

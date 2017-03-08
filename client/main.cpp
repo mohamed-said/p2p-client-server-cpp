@@ -10,7 +10,8 @@ int main()
 {
 
   char* server_name = "192.168.1.106";
-  int port_number = 4444;
+  int16_t server_tcp_port_number = 4444;
+  int16_t server_udp_port_number = 5555;
 
   puts("Please Enter a username (max 20 chars) : ");
   char *username = "kogo";
@@ -26,7 +27,7 @@ int main()
   */
 
   
-  PeerClient *peerclient = new PeerClient(server_name, port_number, username);
+  PeerClient *peerclient = new PeerClient(server_name, server_tcp_port_number, server_udp_port_number, username);
 
   int ret_init = peerclient->init();
   if (ret_init)

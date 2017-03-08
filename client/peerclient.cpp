@@ -1,9 +1,10 @@
 #include "peerclient.h"
 
 
-PeerClient::PeerClient(char *p_server_name, int p_port_number, char *p_username)
+PeerClient::PeerClient(char *p_server_name, int16_t p_tcp_port_number, int16_t p_udp_port_number  , char *p_username)
 {
-    port_number = p_port_number;
+    tcp_port_number = p_tcp_port_number;
+    udp_port_number = p_udp_port_number;
     server_name = p_server_name;
     username = p_username;
 }
@@ -12,7 +13,6 @@ PeerClient::PeerClient(char *p_server_name, int p_port_number, char *p_username)
 /** returns 0 for success or error_code for errors */
 int PeerClient::init()
 {
-
     memset(tcp_message_buffer, 0, MAX_TCP_MSG_SIZE + 1);
     memset(udp_message_buffer, 0, MAX_UDP_MSG_SIZE + 1);
     memset(&tcp_server_socket_address, 0, sizeof(tcp_server_socket_address));
@@ -29,13 +29,13 @@ int PeerClient::init()
 
     /** fill the tcp server socket with necessary data */
     tcp_server_socket_address.sin_family = AF_INET;
-    tcp_server_socket_address.sin_port = htons(port_number);
+    tcp_server_socket_address.sin_port = htons(tcp_port_number);
     tcp_server_socket_address.sin_addr = *(in_addr*) server->h_addr;
 
 
     /** fill the udp server socket with the necessary data */
     udp_server_socket_address.sin_family = AF_INET;
-    udp_server_socket_address.sin_port = htons(port_number);
+    udp_server_socket_address.sin_port = htons(udp_port_number);
     udp_server_socket_address.sin_addr = *(in_addr*) server->h_addr;
 
 
@@ -44,55 +44,9 @@ int PeerClient::init()
 
 
 
-void *PeerClient::run_p2p_send(void *args)
-{
-/*
-    // Handle p2p receive
+void *PeerClient::run_p2p_send(void *args) {}
 
-    short recv_error = 0;
-    while (true)
-    {
-        recv_error = recvfrom(udp_socket_fd, udp_message_buffer, MAX_UDP_MSG_SIZE + 1,
-                                    MSG_NOSIGNAL | MSG_CONFIRM,
-                                    (sockaddr*) &udp_server_socket_address,
-                                    (socklen_t) sizeof(udp_server_socket_address));
-
-       
-        // TODO
-        // should handle a proper way to stop the thread
-       if (recv_error == -1)
-       {
-            fprintf(stderr, "ERROR, receiving message from peer!!!\n");
-       }
-       printf("%s\n", udp_message_buffer);
-    }
-*/
-}
-
-void *PeerClient::run_p2p_recv(void *args)
-{
-/*
-    short send_error = 0; // success by default
-    while (true)
-    {
-        puts("Enter your message: ");
-
-        // should check if the message size is correct 
-        scanf("%s", &udp_message_buffer);
-
-        send_error = send(udp_socket_fd, udp_message_buffer, MAX_UDP_MSG_SIZE + 1, MSG_CONFIRM);
-
-        
-         // TODO
-         // should handle a proper way to stop the thread !
-
-        if (send_error == -1)
-        {
-            fprintf(stderr, "ERROR, sending message to peer!!\n");
-        }
-    }
-*/
-}
+void *PeerClient::run_p2p_recv(void *args) {}
 
 
 int PeerClient::start_peer_communication()
