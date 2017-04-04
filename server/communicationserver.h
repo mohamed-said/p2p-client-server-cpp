@@ -10,6 +10,7 @@
 #include <netinet/in.h>
 #include <netdb.h>
 #include <unistd.h>
+#include <inttypes.h>
 #include <string>
 
 
@@ -50,6 +51,7 @@ private:
 public:
 
     CommunicationServer(char*, int16_t, int16_t);
+    ~CommunicationServer();
 
     /* Init socket connection */
     int init();

@@ -1,11 +1,20 @@
 #include "communicationserver.h"
 
 
-CommunicationServer::CommunicationServer(char *p_server_address, int16_t p_tcp_port_number, int16_t p_udp_port_number) {
+CommunicationServer::CommunicationServer(char *p_server_address, int16_t p_tcp_port_number, int16_t p_udp_port_number)
+{
     tcp_port_number = p_tcp_port_number;
     udp_port_number = p_udp_port_number;
     str_server_address.assign(p_server_address);
     socket_address_size = sizeof(server_tcp_socket_data);
+}
+
+
+CommunicationServer::~CommunicationServer()
+{
+    close(tcp_server_socket_fd);
+    close(udp_server_socket_fd);
+    close(tcp_client_socket_fd);
 }
 
 
@@ -61,6 +70,7 @@ int CommunicationServer::init()
             fprintf(stderr, "ERROR accepting client connection\n");
             return errno;
         }
+//        void*(*) task = decideTask();
 
         int16_t pthread_error = pthread_create(&thread_id, NULL, (void*(*)(void*))handle_peer_tcp_connection, this);
         if (pthread_error)
@@ -117,7 +127,6 @@ void* CommunicationServer::handle_peer_tcp_connection(CommunicationServer *__ser
         printf(" * (errno) -> %d\n", errno);
     }
 
-
     printf("Client Sent: %s\n", __server_obj->message_buffer);
 
     /***
@@ -126,63 +135,125 @@ void* CommunicationServer::handle_peer_tcp_connection(CommunicationServer *__ser
      * a peer connection messgae (asking to connect with some peer)
      */
 
-
-    strcpy(__server_obj->message_buffer, "SENDFIRSTUDP");
-
-    int16_t send_error = send(socket_descriptor, __server_obj->message_buffer, sizeof(__server_obj->message_buffer), MSG_NOSIGNAL);
-    if (send_error == -1)
+    if (strcmp(__server_obj->message_buffer, "REGISTER") == 0)
     {
-        fprintf(stderr, " * ERROR, sending response to client\n");
-        printf(" * (errno) -> %d\n", errno);
+        strcpy(__server_obj->message_buffer, "SENDFIRSTUDP");
+
+        // Bonne Voyage
+        int16_t send_error = send(socket_descriptor, __server_obj->message_buffer, sizeof(__server_obj->message_buffer), MSG_NOSIGNAL);
+        if (send_error == -1)
+        {
+            fprintf(stderr, " * ERROR, sending response to client\n");
+            printf(" * (errno) -> %d\n", errno);
+        }
+        else
+        {
+            puts(" * Triggered First UDP");
+        }
+
+        int16_t recv_from_len = recvfrom(__server_obj->udp_server_socket_fd,                   /* socket file */
+                                           __server_obj->message_buffer,                       /* buffer to receive into */
+                                           sizeof(__server_obj->message_buffer),               /* size of buffer */
+                                           MSG_CONFIRM,                                        /* flags */
+                                           (sockaddr*) &__server_obj->client_udp_socket_data,  /* socket address */
+                                           &__server_obj->socket_address_size);                /* size of socket address */
+
+        if (recv_from_len == -1)
+        {
+            fprintf(stderr, " * ERROR, receiving first UDP message");
+            printf(" * (errno) -> %d\n", errno);
+        }
+        else
+        {
+            puts("UDP Message received!!!");
+        }
+
+        printf("Client username: %s\n", __server_obj->message_buffer);
+        puts("---------------------");
+
+        PeerData *peer_data = new PeerData();
+        peer_data->client_sockert_address = __server_obj->client_udp_socket_data;
+        peer_data->username = __server_obj->message_buffer;
+        // maybe we should check if the username already exists (maybe)
+        PeerHolder::get_instance()->register_peer(peer_data);
+
+        strcpy(__server_obj->message_buffer, "REGISTERED SUCCESSFULLY");
+
+        send_error = send(socket_descriptor, __server_obj->message_buffer,
+                          sizeof(__server_obj->message_buffer), MSG_NOSIGNAL);
+
+        if (send_error == -1)
+        {
+            fprintf(stderr, " * ERROR, sending registration response\n");
+            printf(" * (errno) -> %d\n", errno);
+        }
+
+    }
+    else if (strcmp(__server_obj->message_buffer, "REQUESTPEER") == 0)
+    {
+        strcpy(__server_obj->message_buffer, "SENDUSERNAME");
+
+        // Bonne Voyage
+        int16_t send_error = send(socket_descriptor, __server_obj->message_buffer, sizeof(__server_obj->message_buffer), MSG_NOSIGNAL);
+        if (send_error == -1)
+        {
+            fprintf(stderr, " * ERROR, sending response to client\n");
+            printf(" * (errno) -> %d\n", errno);
+        }
+        else
+        {
+            puts(" * Triggered First UDP");
+        }
+
+        int16_t read_error = read(socket_descriptor, __server_obj->message_buffer, sizeof(__server_obj->message_buffer));
+        if (read_error < 0)
+        {
+            fprintf(stderr, " * ERROR, reading message from the client\n");
+            printf(" * (errno) -> %d\n", errno);
+        }
+
+        string requested_username = __server_obj->message_buffer;
+        PeerData *peer_data = __server_obj->get_peer_details(requested_username);
+        if (peer_data == NULL)
+        {
+            strcpy(__server_obj->message_buffer, "USERNAMENOTFOUND");
+        }
+        else
+        {
+            memset(__server_obj->message_buffer, 0, MAX_MSG_SIZE + 1);
+            // copy the peer data to a byte array buffer to send back to the requesting client
+            memcpy(__server_obj->message_buffer,
+                   &peer_data->client_sockert_address.sin_addr.s_addr,
+                   sizeof(peer_data->client_sockert_address.sin_addr.s_addr));
+            memcpy(__server_obj->message_buffer + sizeof(peer_data->client_sockert_address.sin_addr.s_addr),
+                   &peer_data->client_sockert_address.sin_port,
+                   sizeof(peer_data->client_sockert_address.sin_port));
+
+            // Bonne Voyage
+            send_error = send(socket_descriptor, __server_obj->message_buffer,
+                              sizeof(__server_obj->message_buffer), MSG_NOSIGNAL);
+
+            if (send_error == -1)
+            {
+                fprintf(stderr, " * ERROR, sending registration response\n");
+                printf(" * (errno) -> %d\n", errno);
+            }
+        }
     }
     else
     {
-        puts(" * Triggered First UDP");
+        puts("Invalid Command or Request");
     }
 
-    int16_t recv_from_len = recvfrom(__server_obj->udp_server_socket_fd,                   /* socket file */
-                                       __server_obj->message_buffer,                       /* buffer to receive into */
-                                       sizeof(__server_obj->message_buffer),               /* size of buffer */
-                                       MSG_CONFIRM,                                        /* flags */
-                                       (sockaddr*) &__server_obj->client_udp_socket_data,  /* socket address */
-                                       &__server_obj->socket_address_size);                /* size of socket address */
-
-
-    printf("RecvFrom Len: %d\n", recv_from_len);
-
-    if (recv_from_len == -1)
-    {
-        fprintf(stderr, " * ERROR, receiving first UDP message");
-        printf(" * (errno) -> %d\n", errno);
-    }
-    else
-    {
-        puts("UDP Message received!!!");
-    }
-
-    printf("Client username: %s\n", __server_obj->message_buffer);
-
-//    PeerData *peer_data = new PeerData();
-//    peer_data->client_sockert_address = __server_obj->server_tcp_socket_data;
-//    peer_data->username = __server_obj->message_buffer;
-
-    // PeerHolder::get_instance()->register_peer(peer_data);
-
-    strcpy(__server_obj->message_buffer, "REGISTERED SUCCESSFULLY");
-
-    send_error = send(socket_descriptor,
-                      __server_obj->message_buffer,
-                      sizeof(__server_obj->message_buffer),
-                      MSG_NOSIGNAL);
-
-    if (send_error == -1)
-    {
-        fprintf(stderr, " * ERROR, sending registration response\n");
-        printf(" * (errno) -> %d\n", errno);
-    }
-
+    /*
+     * I've seen things you people wouldn't believe.
+     * Attack ships on fire off the shoulder of Orion.
+     * I watched C-beams glitter in the dark near the Tannhäuser Gate.
+     * All those moments will be lost in time, like tears in rain.
+     * Time to die :)
+    */
+    /* Thread Dies Here :) */
 }
-
 
 /** get peer details to connect with */
 PeerData* CommunicationServer::get_peer_details(string& p_username)

@@ -9,9 +9,6 @@
 using namespace std;
 
 struct PeerData {
-
-    int socket_fd;
-    int peer_id;
     string username;
     sockaddr_in client_sockert_address;
 

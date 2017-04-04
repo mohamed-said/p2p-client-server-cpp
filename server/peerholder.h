@@ -6,6 +6,8 @@
 #include <sys/types.h>
 #include <sys/un.h>
 #include <netinet/in.h>
+#include <pthread.h>
+#include <mutex>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string>
@@ -22,12 +24,12 @@ class PeerHolder
 {
 
 private:
+
     map<string, PeerData*> peers;
-    pthread_mutex_t *registration_mutex;
+    pthread_mutex_t registration_mutex;
     static PeerHolder *peer_holder_instance;
 
     PeerHolder();
-    void init();
 
 public:
 
@@ -35,6 +37,7 @@ public:
     bool register_peer(PeerData *peer);
     PeerData* get_peer_by_username(string&);
 
-};
+    ~PeerHolder();
 
+};
 #endif // PEERHOLDER_H
