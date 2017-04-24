@@ -118,6 +118,9 @@ int CommunicationServer::init_udp_server()
 
 void* CommunicationServer::handle_peer_tcp_connection(CommunicationServer *__server_obj)
 {
+
+    int16_t send_error;
+
     int16_t socket_descriptor = __server_obj->tcp_client_socket_fd;
 
     int16_t read_error = read(socket_descriptor, __server_obj->message_buffer, sizeof(__server_obj->message_buffer));
@@ -140,7 +143,7 @@ void* CommunicationServer::handle_peer_tcp_connection(CommunicationServer *__ser
         strcpy(__server_obj->message_buffer, "SENDFIRSTUDP");
 
         // Bonne Voyage
-        int16_t send_error = send(socket_descriptor, __server_obj->message_buffer, sizeof(__server_obj->message_buffer), MSG_NOSIGNAL);
+        send_error = send(socket_descriptor, __server_obj->message_buffer, sizeof(__server_obj->message_buffer), MSG_NOSIGNAL);
         if (send_error == -1)
         {
             fprintf(stderr, " * ERROR, sending response to client\n");
@@ -157,6 +160,9 @@ void* CommunicationServer::handle_peer_tcp_connection(CommunicationServer *__ser
                                            MSG_CONFIRM,                                        /* flags */
                                            (sockaddr*) &__server_obj->client_udp_socket_data,  /* socket address */
                                            &__server_obj->socket_address_size);                /* size of socket address */
+
+        cout << "Address: " <<  inet_ntoa(__server_obj->client_udp_socket_data.sin_addr) << endl;
+        cout << "Port: " << ntohs(__server_obj->client_udp_socket_data.sin_port) << endl;
 
         if (recv_from_len == -1)
         {
@@ -194,7 +200,7 @@ void* CommunicationServer::handle_peer_tcp_connection(CommunicationServer *__ser
         strcpy(__server_obj->message_buffer, "SENDUSERNAME");
 
         // Bonne Voyage
-        int16_t send_error = send(socket_descriptor, __server_obj->message_buffer, sizeof(__server_obj->message_buffer), MSG_NOSIGNAL);
+        send_error = send(socket_descriptor, __server_obj->message_buffer, sizeof(__server_obj->message_buffer), MSG_NOSIGNAL);
         if (send_error == -1)
         {
             fprintf(stderr, " * ERROR, sending response to client\n");
@@ -202,24 +208,34 @@ void* CommunicationServer::handle_peer_tcp_connection(CommunicationServer *__ser
         }
         else
         {
-            puts(" * Triggered First UDP");
+            puts(" * Waiting for username");
         }
 
+        // read username
         int16_t read_error = read(socket_descriptor, __server_obj->message_buffer, sizeof(__server_obj->message_buffer));
         if (read_error < 0)
         {
             fprintf(stderr, " * ERROR, reading message from the client\n");
             printf(" * (errno) -> %d\n", errno);
         }
+        else
+        {
+            printf(" * Username received ...\n");
+        }
 
         string requested_username = __server_obj->message_buffer;
         PeerData *peer_data = __server_obj->get_peer_details(requested_username);
+        printf("Address: %d\n", peer_data->client_sockert_address.sin_addr.s_addr);
+        printf("Port: %d\n", ntohs(peer_data->client_sockert_address.sin_port));
         if (peer_data == NULL)
         {
+            puts("Username not found!!!");
             strcpy(__server_obj->message_buffer, "USERNAMENOTFOUND");
         }
         else
         {
+            printf(" * Username \" %s \" found.\n", __server_obj->message_buffer);
+
             memset(__server_obj->message_buffer, 0, MAX_MSG_SIZE + 1);
             // copy the peer data to a byte array buffer to send back to the requesting client
             memcpy(__server_obj->message_buffer,
@@ -228,22 +244,30 @@ void* CommunicationServer::handle_peer_tcp_connection(CommunicationServer *__ser
             memcpy(__server_obj->message_buffer + sizeof(peer_data->client_sockert_address.sin_addr.s_addr),
                    &peer_data->client_sockert_address.sin_port,
                    sizeof(peer_data->client_sockert_address.sin_port));
-
-            // Bonne Voyage
-            send_error = send(socket_descriptor, __server_obj->message_buffer,
-                              sizeof(__server_obj->message_buffer), MSG_NOSIGNAL);
-
-            if (send_error == -1)
-            {
-                fprintf(stderr, " * ERROR, sending registration response\n");
-                printf(" * (errno) -> %d\n", errno);
-            }
         }
+
+        // Bonne Voyage
+        send_error = send(socket_descriptor, __server_obj->message_buffer,
+                          sizeof(__server_obj->message_buffer), MSG_NOSIGNAL);
+
+        if (send_error == -1)
+        {
+            fprintf(stderr, " * ERROR, sending peer details\n");
+            printf(" * (errno) -> %d\n", errno);
+        }
+        else
+        {
+            puts("Response sent successfully.");
+            puts("----------------------------");
+        }
+
     }
     else
     {
-        puts("Invalid Command or Request");
+        puts("Unknown Command or Request");
+        return (void*) NULL;
     }
+
 
     /*
      * I've seen things you people wouldn't believe.

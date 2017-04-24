@@ -154,41 +154,69 @@ int PeerClient::send_peer_connection_request()
         return errno;
     }
 
-    /**
-     * Temporary Logic Implementation
-     * ------------------------------------------------------------------------
-     * We ask the user to enter the name of the peer he wants to connect to
-     * and the server send us back the UDP address of that peer
-     * so that I can start p2p messaging with that user
-     */
 
-    char peer_username[20];
-    puts("Please enter a username to connect to (max 20 chars): ");
-    short chr_count = scanf("%s", peer_username);
-    while (chr_count > 20)
-    {
-        puts("Please Enter a valid username (max 20 chars) : ");
-        memset(peer_username, 0, 20);
-        chr_count = scanf("%s", peer_username);
-    }
-    puts("Thanks\n");
-
-    /** ----------------------------------------------------------------------- */
-
-    strcpy(tcp_message_buffer, peer_username);
-
+    strcpy(tcp_message_buffer, "REQUESTPEER");
     short send_error = send(tcp_socket_fd, tcp_message_buffer, MAX_TCP_MSG_SIZE + 1, MSG_NOSIGNAL);
     if (send_error == -1)
     {
-        fprintf(stderr, "ERROR, sending peer username to server\n");
+        fprintf(stderr, "ERROR, sending peer request to server\n");
         return errno;
     }
 
     short recv_error = recv(tcp_socket_fd, tcp_message_buffer, MAX_TCP_MSG_SIZE + 1, MSG_NOSIGNAL);
     if (recv_error == -1)
     {
+        fprintf(stderr, "ERROR, server not ready!!");
+        return errno;
+    } else if (strcmp(tcp_message_buffer, "SENDUSERNAME") == 0)
+    {
+        char peer_username[21];
+        puts("Please enter a username to connect to (max 20 chars): ");
+        short chr_count = scanf("%s", peer_username);
+        while (chr_count > 20)
+        {
+            puts("Please Enter a valid username (max 20 chars) : ");
+            memset(peer_username, 0, 20);
+            chr_count = scanf("%s", peer_username);
+        }
+        puts("Thanks\n");
+
+        strcpy(tcp_message_buffer, peer_username);
+    }
+    else
+    {
+        fprintf(stderr, "ERROR, Invalid response, server not ready");
+        return errno;
+    }
+
+    // sending username
+    send_error = send(tcp_socket_fd, tcp_message_buffer, MAX_TCP_MSG_SIZE + 1, MSG_NOSIGNAL);
+    if (send_error == -1)
+    {
+        fprintf(stderr, "ERROR, sending peer username to server\n");
+        return errno;
+    }
+
+    recv_error = recv(tcp_socket_fd, tcp_message_buffer, MAX_TCP_MSG_SIZE + 1, MSG_NOSIGNAL);
+    if (recv_error == -1)
+    {
         fprintf(stderr, "ERROR, receiving response from server\n");
         return errno;
+    }
+    else if (strcmp(tcp_message_buffer, "USERNAMENOTFOUND") == 0)
+    {
+        fprintf(stderr, "ERROR, Username is not found!!!");
+        return -1;
+    }
+    else
+    {
+        printf("length: %d\n", strlen(tcp_message_buffer));
+//        uint32_t addr;
+//        memcpy(&addr, tcp_message_buffer, 32);
+//        uint16_t port;
+//        memcpy(&port, tcp_message_buffer + 32, 16);
+//        printf("Address: %d, Port: %d\n");
+        puts("Peer Data received successfully");
     }
 
     close(tcp_socket_fd);

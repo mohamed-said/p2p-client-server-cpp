@@ -6,29 +6,46 @@
 
 using namespace std;
 
-int main()
+char username[21];
+
+void get_username()
+{
+    puts("Please Enter a username (max 20 chars) : ");
+
+    short chr_count = scanf("%s", username);
+    while (chr_count > 20)
+    {
+        puts("Please Enter a valid username (max 20 chars) : ");
+        memset(username, 0, 20);
+        chr_count = scanf("%s", username);
+    }
+}
+
+int main(int argc, char **argv)
 {
 
   char* server_name = "127.0.0.1";
   int16_t server_tcp_port_number = 4444;
   int16_t server_udp_port_number = 5555;
 
-  puts("Please Enter a username (max 20 chars) : ");
-  char *username = "kogo";
-  
-  /*
-  short chr_count = scanf("%s", username);
-  while (chr_count > 20)
+  if (argc == 2)
   {
-      puts("Please Enter a valid username (max 20 chars) : ");
-      memset(username, 0, 20);
-      chr_count = scanf("%s", username);
+      if (strcmp(*argv, "-h"))
+      {
+          printf("usage: \n* Enter \'REGISTER\' for registration.\n* Enter \'REQUESTPEER\' for P2P establishment.\n");
+          exit(0);
+      } else
+      {
+          puts("Wrong Parameters!!");
+          exit(1);
+      }
+  } else if (argc > 2)
+  {
+      printf("./p2pclient -h for help\n");
+      exit(1);
   }
-  */
 
-  
   PeerClient *peerclient = new PeerClient(server_name, server_tcp_port_number, server_udp_port_number, username);
-
   int ret_init = peerclient->init();
   if (ret_init)
   {
@@ -39,28 +56,50 @@ int main()
       puts("Peer buffers initialized successfully");
   }
 
-
-  int ret_reg_msg = peerclient->send_register_message();
-  if (ret_reg_msg)
+  char cmd[20];
+  while (1)
   {
-    printf(" * Failed to send message \n * Exit code is: %d\n", ret_reg_msg);
-  }
-  else
-  {
-      puts("Register messgae sent successfully");
-  }
+      puts("Enter a command:");
+      puts("1 - REGISTER");
+      puts("2 - REQUESTPEER");
+      puts("3 - QUIT");
+      scanf("%s", cmd);
+      if (strcmp(cmd, "REGISTER") == 0)
+      {
+          get_username();
+          int ret_reg_msg = peerclient->send_register_message();
+          if (ret_reg_msg)
+          {
+            printf(" * Failed to send message \n * Exit code is: %d\n", ret_reg_msg);
+          }
+          else
+          {
+              puts("Register messgae sent successfully");
+          }
 
-  int ret_frst_udp = peerclient->send_udp_first_msg();
-  if (ret_frst_udp)
-  {
-      printf(" * Failed to send first UDP messgae\n * Exit code is: %d\n", ret_frst_udp);
+          int ret_frst_udp = peerclient->send_udp_first_msg();
+          if (ret_frst_udp)
+          {
+              printf(" * Failed to send first UDP messgae\n * Exit code is: %d\n", ret_frst_udp);
+          }
+          else
+          {
+              puts("First UDP message sent successfully");
+          }
+      }
+      else if (strcmp(cmd, "REQUESTPEER") == 0)
+      {
+          peerclient->send_peer_connection_request();
+      }
+      else if (strcmp(cmd, "QUIT") == 0)
+      {
+          puts("Goodbye!!!");
+          break;
+      }
+      else
+      {
+        puts("Unknown Command!!");
+      }
   }
-  else
-  {
-      puts("First UDP message sent successfully");
-  }
-
-
-
   return 0;
 }

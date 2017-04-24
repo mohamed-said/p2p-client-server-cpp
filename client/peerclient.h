@@ -21,12 +21,11 @@ private:
 
     int16_t tcp_port_number;                /* Server TCP port number to connect to */
     int16_t udp_port_number;                /* Server UDP port number to send data on */
+
     hostent *server;                        /* Server address */
 
     sockaddr_in tcp_server_socket_address;  /* TCP server socket data */
     sockaddr_in udp_server_socket_address;  /* UDP server socket data */
-
-
     int socket_length;
 
     char *server_name;

@@ -11,7 +11,6 @@ using namespace std;
 struct PeerData {
     string username;
     sockaddr_in client_sockert_address;
-
 };
 
 
