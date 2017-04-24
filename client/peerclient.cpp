@@ -205,25 +205,25 @@ int PeerClient::send_peer_connection_request()
     }
     else if (strcmp(tcp_message_buffer, "USERNAMENOTFOUND") == 0)
     {
-        fprintf(stderr, "ERROR, Username is not found!!!");
+        fprintf(stderr, "ERROR, Username is not found!!!\n");
         return -1;
     }
     else
     {
-        printf("length: %d\n", strlen(tcp_message_buffer));
-//        uint32_t addr;
-//        memcpy(&addr, tcp_message_buffer, 32);
-//        uint16_t port;
-//        memcpy(&port, tcp_message_buffer + 32, 16);
-//        printf("Address: %d, Port: %d\n");
         puts("Peer Data received successfully");
+        in_addr addr;
+        memcpy(&addr.s_addr, tcp_message_buffer, 4);
+        uint16_t prt;
+        memcpy(&prt, tcp_message_buffer + 4, 2);
+
+        printf("Addr: %s\n", inet_ntoa(addr));
+        printf("Port: %hu\n", ntohs(prt));
+        puts("-------------------------------");
     }
 
     close(tcp_socket_fd);
     return 0;
 }
-
-
 
 /**
  * UDP message
@@ -266,7 +266,7 @@ int PeerClient::send_udp_first_msg()
     int16_t recv_error = recv(tcp_socket_fd, udp_message_buffer, MAX_UDP_MSG_SIZE + 1, MSG_NOSIGNAL);
     if (recv_error == -1)
     {
-        fprintf(stderr, " * ERROR, receving first UDP response from server");
+        fprintf(stderr, " * ERROR, receving first UDP response from server\n");
         return errno;
     }
 

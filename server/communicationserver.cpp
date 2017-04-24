@@ -225,8 +225,7 @@ void* CommunicationServer::handle_peer_tcp_connection(CommunicationServer *__ser
 
         string requested_username = __server_obj->message_buffer;
         PeerData *peer_data = __server_obj->get_peer_details(requested_username);
-        printf("Address: %d\n", peer_data->client_sockert_address.sin_addr.s_addr);
-        printf("Port: %d\n", ntohs(peer_data->client_sockert_address.sin_port));
+
         if (peer_data == NULL)
         {
             puts("Username not found!!!");
@@ -238,12 +237,23 @@ void* CommunicationServer::handle_peer_tcp_connection(CommunicationServer *__ser
 
             memset(__server_obj->message_buffer, 0, MAX_MSG_SIZE + 1);
             // copy the peer data to a byte array buffer to send back to the requesting client
+
             memcpy(__server_obj->message_buffer,
-                   &peer_data->client_sockert_address.sin_addr.s_addr,
-                   sizeof(peer_data->client_sockert_address.sin_addr.s_addr));
+                   &peer_data->client_sockert_address.sin_addr,
+                   sizeof(peer_data->client_sockert_address.sin_addr));
             memcpy(__server_obj->message_buffer + sizeof(peer_data->client_sockert_address.sin_addr.s_addr),
                    &peer_data->client_sockert_address.sin_port,
                    sizeof(peer_data->client_sockert_address.sin_port));
+
+//            printf("Message Length: %d\n", strlen(__server_obj->message_buffer));
+
+//            in_addr addr;
+//            memcpy(&addr.s_addr, __server_obj->message_buffer, 4);
+//            uint16_t prt;
+//            memcpy(&prt, __server_obj->message_buffer + 4, 2);
+
+//            printf("Addr: %s\n", inet_ntoa(addr));
+//            printf("Port: %hu\n", ntohs(prt));
         }
 
         // Bonne Voyage
@@ -267,7 +277,6 @@ void* CommunicationServer::handle_peer_tcp_connection(CommunicationServer *__ser
         puts("Unknown Command or Request");
         return (void*) NULL;
     }
-
 
     /*
      * I've seen things you people wouldn't believe.

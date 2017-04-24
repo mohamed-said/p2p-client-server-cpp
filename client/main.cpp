@@ -60,11 +60,11 @@ int main(int argc, char **argv)
   while (1)
   {
       puts("Enter a command:");
-      puts("1 - REGISTER");
-      puts("2 - REQUESTPEER");
-      puts("3 - QUIT");
+      puts("Register (r) | Request Peer (rp) | QUIT (q)");
+      puts("-----------------------------------------");
+      printf("cmd: ");
       scanf("%s", cmd);
-      if (strcmp(cmd, "REGISTER") == 0)
+      if (strcmp(cmd, "r") == 0)
       {
           get_username();
           int ret_reg_msg = peerclient->send_register_message();
@@ -87,11 +87,11 @@ int main(int argc, char **argv)
               puts("First UDP message sent successfully");
           }
       }
-      else if (strcmp(cmd, "REQUESTPEER") == 0)
+      else if (strcmp(cmd, "rp") == 0)
       {
           peerclient->send_peer_connection_request();
       }
-      else if (strcmp(cmd, "QUIT") == 0)
+      else if (strcmp(cmd, "q") == 0)
       {
           puts("Goodbye!!!");
           break;
