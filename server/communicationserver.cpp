@@ -123,7 +123,7 @@ void* CommunicationServer::handle_peer_tcp_connection(CommunicationServer *__ser
 
     int16_t socket_descriptor = __server_obj->tcp_client_socket_fd;
 
-    int16_t read_error = read(socket_descriptor, __server_obj->message_buffer, sizeof(__server_obj->message_buffer));
+    int16_t read_error = read(socket_descriptor, __server_obj->message_buffer, MAX_MSG_SIZE);
     if (read_error < 0)
     {
         fprintf(stderr, " * ERROR, reading message from the client\n");
@@ -156,7 +156,7 @@ void* CommunicationServer::handle_peer_tcp_connection(CommunicationServer *__ser
 
         int16_t recv_from_len = recvfrom(__server_obj->udp_server_socket_fd,                   /* socket file */
                                            __server_obj->message_buffer,                       /* buffer to receive into */
-                                           sizeof(__server_obj->message_buffer),               /* size of buffer */
+                                           MAX_MSG_SIZE,                                       /* size of buffer */
                                            MSG_CONFIRM,                                        /* flags */
                                            (sockaddr*) &__server_obj->client_udp_socket_data,  /* socket address */
                                            &__server_obj->socket_address_size);                /* size of socket address */
@@ -185,8 +185,7 @@ void* CommunicationServer::handle_peer_tcp_connection(CommunicationServer *__ser
 
         strcpy(__server_obj->message_buffer, "REGISTERED SUCCESSFULLY");
 
-        send_error = send(socket_descriptor, __server_obj->message_buffer,
-                          sizeof(__server_obj->message_buffer), MSG_NOSIGNAL);
+        send_error = send(socket_descriptor, __server_obj->message_buffer, MAX_MSG_SIZE, MSG_NOSIGNAL);
 
         if (send_error == -1)
         {
@@ -200,7 +199,7 @@ void* CommunicationServer::handle_peer_tcp_connection(CommunicationServer *__ser
         strcpy(__server_obj->message_buffer, "SENDUSERNAME");
 
         // Bonne Voyage
-        send_error = send(socket_descriptor, __server_obj->message_buffer, sizeof(__server_obj->message_buffer), MSG_NOSIGNAL);
+        send_error = send(socket_descriptor, __server_obj->message_buffer, MAX_MSG_SIZE, MSG_NOSIGNAL);
         if (send_error == -1)
         {
             fprintf(stderr, " * ERROR, sending response to client\n");
@@ -212,7 +211,7 @@ void* CommunicationServer::handle_peer_tcp_connection(CommunicationServer *__ser
         }
 
         // read username
-        int16_t read_error = read(socket_descriptor, __server_obj->message_buffer, sizeof(__server_obj->message_buffer));
+        int16_t read_error = read(socket_descriptor, __server_obj->message_buffer, MAX_MSG_SIZE);
         if (read_error < 0)
         {
             fprintf(stderr, " * ERROR, reading message from the client\n");
@@ -221,6 +220,13 @@ void* CommunicationServer::handle_peer_tcp_connection(CommunicationServer *__ser
         else
         {
             printf(" * Username received ...\n");
+            printf("[DEBUGGING][handle_peer_tcp_connection][message buffer]: %s\n", __server_obj->message_buffer);
+            printf("[DEBUGGING][handle_peer_tcp_connection][message buffer]: length: %d\n", read_error);
+            for (int i = 0; i < MAX_MSG_SIZE; i++)
+            {
+              printf("byte #%d: %d-%c\n", i, __server_obj->message_buffer[i], __server_obj->message_buffer[i]);
+            }
+            puts("[DEBUGGING][END]");
         }
 
         string requested_username = __server_obj->message_buffer;
@@ -258,7 +264,7 @@ void* CommunicationServer::handle_peer_tcp_connection(CommunicationServer *__ser
 
         // Bonne Voyage
         send_error = send(socket_descriptor, __server_obj->message_buffer,
-                          sizeof(__server_obj->message_buffer), MSG_NOSIGNAL);
+                          MAX_MSG_SIZE, MSG_NOSIGNAL);
 
         if (send_error == -1)
         {
