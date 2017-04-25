@@ -18,7 +18,7 @@
 #include "peerholder.h"
 #include "peerdata.h"
 
-#define MAX_MSG_SIZE  2500
+#define MAX_MSG_SIZE    1400 
 //#define SOCKET_ERROR  1000
 //#define BIND_ERROR    2000
 //#define LISTEN_ERROR  3000
