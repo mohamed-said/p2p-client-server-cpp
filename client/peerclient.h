@@ -27,12 +27,18 @@ private:
 
     sockaddr_in tcp_server_socket_address;  /* TCP server socket data */
     sockaddr_in udp_server_socket_address;  /* UDP server socket data */
+
+    sockaddr_in peer_udp_socket_data;
+
     int socket_length;
 
     char *server_name;
-    char *username;
+    char *my_username;
+    char peer_username[21];
+
     char tcp_message_buffer[MAX_TCP_MSG_SIZE + 1];
     char udp_message_buffer[MAX_UDP_MSG_SIZE + 1];
+
     pthread_t send_thread_id;
     pthread_t recv_thread_id;
 
@@ -58,10 +64,10 @@ public:
     int start_peer_communication();
 
     /* messages receive thread */
-    static void *run_p2p_recv(void*);
+    static void *run_p2p_recv(PeerClient *__peer_client);
 
     /* messages send thread */
-    static void *run_p2p_send(void*);
+    static void *run_p2p_send(PeerClient *__peer_client);
 
 };
 
