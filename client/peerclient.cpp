@@ -103,14 +103,14 @@ int PeerClient::send_register_message(char p_username[])
 
     strcpy(tcp_message_buffer, "REGISTER");
 
-    short send_error = send(tcp_socket_fd, tcp_message_buffer, MAX_TCP_MSG_SIZE + 1, MSG_NOSIGNAL);
+    short send_error = send(tcp_socket_fd, tcp_message_buffer, MAX_TCP_MSG_SIZE, MSG_NOSIGNAL);
     if (send_error == -1)
     {
         fprintf(stderr, "ERROR, sending data to host\n");
         return errno;
     }
 
-    short recv_error = recv(tcp_socket_fd, tcp_message_buffer, MAX_TCP_MSG_SIZE + 1, MSG_NOSIGNAL);
+    short recv_error = recv(tcp_socket_fd, tcp_message_buffer, MAX_TCP_MSG_SIZE, MSG_NOSIGNAL);
     if (recv_error == -1)
     {
         fprintf(stderr, "ERROR, readeing response from server\n");
@@ -157,14 +157,16 @@ int PeerClient::send_peer_connection_request()
 
 
     strcpy(tcp_message_buffer, "REQUESTPEER");
-    short send_error = send(tcp_socket_fd, tcp_message_buffer, MAX_TCP_MSG_SIZE + 1, MSG_NOSIGNAL);
+    short send_error = send(tcp_socket_fd, tcp_message_buffer, MAX_TCP_MSG_SIZE, MSG_NOSIGNAL);
     if (send_error == -1)
     {
         fprintf(stderr, "ERROR, sending peer request to server\n");
         return errno;
     }
 
-    short recv_error = recv(tcp_socket_fd, tcp_message_buffer, MAX_TCP_MSG_SIZE + 1, MSG_NOSIGNAL);
+    puts("What the hell is going on here??");
+
+    short recv_error = recv(tcp_socket_fd, tcp_message_buffer, MAX_TCP_MSG_SIZE, MSG_NOSIGNAL);
     if (recv_error == -1)
     {
         fprintf(stderr, "ERROR, server not ready!!");
@@ -194,7 +196,7 @@ int PeerClient::send_peer_connection_request()
     printf("[DEBUGGING][send_peer_connection_request][tcp_message_buffer]: username before: %s\n", tcp_message_buffer);
 
     // sending username
-    send_error = send(tcp_socket_fd, tcp_message_buffer, MAX_TCP_MSG_SIZE + 1, MSG_NOSIGNAL);
+    send_error = send(tcp_socket_fd, tcp_message_buffer, MAX_TCP_MSG_SIZE, MSG_NOSIGNAL);
     if (send_error == -1)
     {
         fprintf(stderr, "ERROR, sending peer username to server\n");
@@ -207,7 +209,7 @@ int PeerClient::send_peer_connection_request()
         printf("[DEBUGGING][send_peer_connection_request][tcp_message_buffer]: message length: %d\n", send_error);
     }
 
-    recv_error = recv(tcp_socket_fd, tcp_message_buffer, MAX_TCP_MSG_SIZE + 1, MSG_NOSIGNAL);
+    recv_error = recv(tcp_socket_fd, tcp_message_buffer, MAX_TCP_MSG_SIZE, MSG_NOSIGNAL);
     if (recv_error == -1)
     {
         fprintf(stderr, "ERROR, receiving response from server\n");
@@ -255,7 +257,7 @@ int PeerClient::send_udp_first_msg()
 
     strcpy(udp_message_buffer, username);
     printf("DEBUGGING: usr: %s - %s\n", udp_message_buffer, username);
-    short sendto_error = sendto(udp_socket_fd, udp_message_buffer, MAX_UDP_MSG_SIZE + 1,
+    short sendto_error = sendto(udp_socket_fd, udp_message_buffer, MAX_UDP_MSG_SIZE,
            0, (sockaddr*) &udp_server_socket_address, socket_length);
 
 
@@ -274,7 +276,7 @@ int PeerClient::send_udp_first_msg()
      */
 
 
-    int16_t recv_error = recv(tcp_socket_fd, udp_message_buffer, MAX_UDP_MSG_SIZE + 1, MSG_NOSIGNAL);
+    int16_t recv_error = recv(tcp_socket_fd, udp_message_buffer, MAX_UDP_MSG_SIZE, MSG_NOSIGNAL);
     if (recv_error == -1)
     {
         fprintf(stderr, " * ERROR, receving first UDP response from server\n");

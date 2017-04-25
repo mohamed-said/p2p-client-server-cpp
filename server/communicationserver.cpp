@@ -120,10 +120,11 @@ void* CommunicationServer::handle_peer_tcp_connection(CommunicationServer *__ser
 {
 
     int16_t send_error;
+    size_t MAX_BUFFER_SIZE = 1400;
     int16_t socket_descriptor = __server_obj->tcp_client_socket_fd;
 
 
-    int16_t read_error = read(socket_descriptor, __server_obj->message_buffer, MAX_MSG_SIZE);
+    int16_t read_error = read(socket_descriptor, __server_obj->message_buffer, MAX_BUFFER_SIZE);
 
     if (read_error < 0)
     {
@@ -157,7 +158,7 @@ void* CommunicationServer::handle_peer_tcp_connection(CommunicationServer *__ser
 
         int16_t recv_from_len = recvfrom(__server_obj->udp_server_socket_fd,                   /* socket file */
                                            __server_obj->message_buffer,                       /* buffer to receive into */
-                                           MAX_MSG_SIZE,                                       /* size of buffer */
+                                           MAX_BUFFER_SIZE,                                    /* size of buffer */
                                            MSG_CONFIRM,                                        /* flags */
                                            (sockaddr*) &__server_obj->client_udp_socket_data,  /* socket address */
                                            &__server_obj->socket_address_size);                /* size of socket address */
@@ -200,7 +201,7 @@ void* CommunicationServer::handle_peer_tcp_connection(CommunicationServer *__ser
         strcpy(__server_obj->message_buffer, "SENDUSERNAME");
 
         // Bonne Voyage
-        send_error = send(socket_descriptor, __server_obj->message_buffer, MAX_MSG_SIZE, MSG_NOSIGNAL);
+        send_error = send(socket_descriptor, __server_obj->message_buffer, MAX_BUFFER_SIZE, MSG_NOSIGNAL);
         if (send_error == -1)
         {
             fprintf(stderr, " * ERROR, sending response to client\n");
@@ -212,7 +213,7 @@ void* CommunicationServer::handle_peer_tcp_connection(CommunicationServer *__ser
         }
 
         // read username
-        int16_t read_error = read(socket_descriptor, __server_obj->message_buffer, MAX_MSG_SIZE);
+        int16_t read_error = read(socket_descriptor, __server_obj->message_buffer, MAX_BUFFER_SIZE);
         if (read_error < 0)
         {
             fprintf(stderr, " * ERROR, reading message from the client\n");
@@ -264,7 +265,7 @@ void* CommunicationServer::handle_peer_tcp_connection(CommunicationServer *__ser
         }
 
         // Bonne Voyage
-        send_error = send(socket_descriptor, __server_obj->message_buffer, MAX_MSG_SIZE, MSG_NOSIGNAL);
+        send_error = send(socket_descriptor, __server_obj->message_buffer, MAX_BUFFER_SIZE, MSG_NOSIGNAL);
 
         if (send_error == -1)
         {

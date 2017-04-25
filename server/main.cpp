@@ -8,7 +8,7 @@ using namespace std;
 int main()
 {
 
-    char *server_name = "192.168.1.161";
+    char *server_name = "192.168.1.185";
     int tcp_port_number = 4444;
     int udp_port_number = 5555;
 
