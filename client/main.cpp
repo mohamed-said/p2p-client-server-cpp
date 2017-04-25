@@ -19,33 +19,30 @@ void get_username()
         memset(username, 0, 20);
         chr_count = scanf("%s", username);
     }
+    printf("[DEBUGGING][main][get_username][username]: %s\n", username);
 }
 
 int main(int argc, char **argv)
 {
 
-  char* server_name = "127.0.0.1";
+  char server_name[50];
   int16_t server_tcp_port_number = 4444;
   int16_t server_udp_port_number = 5555;
 
   if (argc == 2)
   {
-      if (strcmp(*argv, "-h"))
+      if (strcmp(argv[1], "-h") == 0)
       {
           printf("usage: \n* Enter \'REGISTER\' for registration.\n* Enter \'REQUESTPEER\' for P2P establishment.\n");
           exit(0);
       } else
       {
-          puts("Wrong Parameters!!");
-          exit(1);
+          // need to be verified
+          strcpy(server_name, argv[1]);
       }
-  } else if (argc > 2)
-  {
-      printf("./p2pclient -h for help\n");
-      exit(1);
   }
 
-  PeerClient *peerclient = new PeerClient(server_name, server_tcp_port_number, server_udp_port_number, username);
+  PeerClient *peerclient = new PeerClient(server_name, server_tcp_port_number, server_udp_port_number);
   int ret_init = peerclient->init();
   if (ret_init)
   {
@@ -67,7 +64,8 @@ int main(int argc, char **argv)
       if (strcmp(cmd, "r") == 0)
       {
           get_username();
-          int ret_reg_msg = peerclient->send_register_message();
+          int ret_reg_msg = peerclient->send_register_message(username);
+          printf("[DEBUGGING][main][username]: %s\n", username);
           if (ret_reg_msg)
           {
             printf(" * Failed to send message \n * Exit code is: %d\n", ret_reg_msg);

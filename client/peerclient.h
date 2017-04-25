@@ -40,13 +40,13 @@ private:
 public:
 
     /* Constructor */
-    PeerClient(char*, int16_t, int16_t, char*);
+    PeerClient(char*, int16_t, int16_t);
 
     /* Initializes messaging buffers and socket addresses */
     int init();
 
     /* TCP register request message */
-    int send_register_message();
+    int send_register_message(char[]);
 
     /* TCP connect to peer request message */
     int send_peer_connection_request();
