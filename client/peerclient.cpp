@@ -190,12 +190,21 @@ int PeerClient::send_peer_connection_request()
         return errno;
     }
 
+
+    printf("[DEBUGGING][send_peer_connection_request][tcp_message_buffer]: username before: %s\n", tcp_message_buffer);
+
     // sending username
     send_error = send(tcp_socket_fd, tcp_message_buffer, MAX_TCP_MSG_SIZE + 1, MSG_NOSIGNAL);
     if (send_error == -1)
     {
         fprintf(stderr, "ERROR, sending peer username to server\n");
         return errno;
+    }
+    else
+    {
+        // correct
+        printf("[DEBUGGING][send_peer_connection_request][tcp_message_buffer]: username after : %s\n", tcp_message_buffer);
+        printf("[DEBUGGING][send_peer_connection_request][tcp_message_buffer]: message length: %d\n", send_error);
     }
 
     recv_error = recv(tcp_socket_fd, tcp_message_buffer, MAX_TCP_MSG_SIZE + 1, MSG_NOSIGNAL);

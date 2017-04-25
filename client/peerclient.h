@@ -7,7 +7,7 @@
 #include <string>
 #include <string.h>
 
-#define MAX_TCP_MSG_SIZE 2500
+#define MAX_TCP_MSG_SIZE 1400
 #define MAX_UDP_MSG_SIZE 64
 
 
