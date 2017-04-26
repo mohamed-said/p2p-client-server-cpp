@@ -57,7 +57,7 @@ int main(int argc, char **argv)
   while (1)
   {
       puts("Enter a command:");
-      puts("Register (r) | Request Peer (rp) | QUIT (q)");
+      puts("Register (r) | Request Peer (rp) | Connect (c) | Quit (q)");
       puts("-----------------------------------------");
       printf("cmd: ");
       scanf("%s", cmd);
@@ -88,6 +88,11 @@ int main(int argc, char **argv)
       else if (strcmp(cmd, "rp") == 0)
       {
           peerclient->send_peer_connection_request();
+      }
+      else if (strcmp(cmd, "c") == 0)
+      {
+          peerclient->start_peer_communication();
+          for (;;) {}
       }
       else if (strcmp(cmd, "q") == 0)
       {
