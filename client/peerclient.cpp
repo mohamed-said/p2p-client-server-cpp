@@ -63,8 +63,8 @@ void *PeerClient::run_p2p_send(PeerClient *__peer_client)
 
 }
 
-void *PeerClient::run_p2p_recv(PeerClient *__peer_client) {
-
+void *PeerClient::run_p2p_recv(PeerClient *__peer_client)
+{
     char message_buffer[64];
     while (1)
     {
@@ -194,8 +194,6 @@ int PeerClient::send_peer_connection_request()
         fprintf(stderr, "ERROR, sending peer request to server\n");
         return errno;
     }
-
-    puts("What the hell is going on here??");
 
     short recv_error = recv(tcp_socket_fd, tcp_message_buffer, MAX_TCP_MSG_SIZE, MSG_NOSIGNAL);
     if (recv_error == -1)
