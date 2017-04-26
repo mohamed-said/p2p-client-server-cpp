@@ -5,13 +5,18 @@
 
 using namespace std;
 
-int main()
+int main(int argc, char **argv)
 {
 
-    char *server_name = "192.168.1.185";
+    char *server_name = new char[50];
     int tcp_port_number = 4444;
     int udp_port_number = 5555;
-
+  
+    if (argc > 1)
+    {
+        strcpy(server_name, argv[1]);
+    }
+    
     CommunicationServer *comm_Server = new CommunicationServer(server_name, tcp_port_number, udp_port_number);
     int ret = comm_Server->init();
     if (ret)

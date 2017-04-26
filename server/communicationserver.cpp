@@ -224,11 +224,13 @@ void* CommunicationServer::handle_peer_tcp_connection(CommunicationServer *__ser
             printf(" * Username received ...\n");
             printf("[DEBUGGING][handle_peer_tcp_connection][message buffer]: %s\n", __server_obj->message_buffer);
             printf("[DEBUGGING][handle_peer_tcp_connection][message buffer]: length: %d\n", read_error);
+/*
             for (int i = 0; i < MAX_MSG_SIZE; i++)
             {
               printf("byte #%d: %d-%c\n", i, __server_obj->message_buffer[i], __server_obj->message_buffer[i]);
             }
             puts("[DEBUGGING][END]");
+*/
         }
 
         string requested_username = __server_obj->message_buffer;
