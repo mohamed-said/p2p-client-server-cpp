@@ -67,6 +67,7 @@ void *PeerClient::run_p2p_send(PeerClient *__peer_client)
     while (1)
     {
         fgets(message_buffer, 64, stdin);
+        message_buffer[strlen(message_buffer) - 1] = '\0';
         int16_t sendto_error = sendto(__peer_client->udp_socket_fd, message_buffer, 64, 0,
                                       (sockaddr*) &__peer_client->peer_udp_socket_data,
                                       sizeof(__peer_client->peer_udp_socket_data));
@@ -227,6 +228,7 @@ int PeerClient::send_peer_connection_request()
     {
         puts("Please enter a username to connect to (max 20 chars): ");
         fgets(peer_username, 20, stdin);
+        peer_username[strlen(peer_username) - 1] = '\0';
         /*short chr_count = scanf("%s", peer_username);
         while (chr_count > 20)
         {
