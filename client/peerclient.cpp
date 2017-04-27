@@ -47,9 +47,9 @@ int PeerClient::init()
 void *PeerClient::run_p2p_send(PeerClient *__peer_client)
 {
     char message_buffer[64];
+    printf("You: ");
     while (1)
     {
-        printf("You: ");
         scanf("%s", message_buffer);
         int16_t sendto_error = sendto(__peer_client->udp_socket_fd, message_buffer, 64, 0,
                                       (sockaddr*) &__peer_client->peer_udp_socket_data,
@@ -85,7 +85,8 @@ void *PeerClient::run_p2p_recv(PeerClient *__peer_client)
         }
         else
         {
-            printf("%s: %s\n", __peer_client->peer_username, message_buffer);
+            printf("\n%s: %s\n", __peer_client->peer_username, message_buffer);
+            printf("You: ");
         }
     }
 }
