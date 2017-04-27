@@ -69,5 +69,8 @@ public:
     /* messages send thread */
     static void *run_p2p_send(PeerClient *__peer_client);
 
+    pthread_t get_send_thred_id();
+    pthread_t get_recv_thread_id();
+
 };
 

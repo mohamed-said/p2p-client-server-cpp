@@ -9,6 +9,15 @@ PeerClient::PeerClient(char *p_server_name, int16_t p_tcp_port_number, int16_t p
     my_username = new char[21];
 }
 
+pthread_t PeerClient::get_send_thred_id()
+{
+    return send_thread_id;
+}
+
+pthread_t PeerClient::get_recv_thread_id()
+{
+    return recv_thread_id;
+}
 
 /** returns 0 for success or error_code for errors */
 int PeerClient::init()
@@ -277,7 +286,6 @@ int PeerClient::send_peer_connection_request()
     }
 
     close(tcp_socket_fd);
-    start_peer_communication();
     return 0;
 }
 

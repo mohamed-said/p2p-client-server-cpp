@@ -92,7 +92,7 @@ int main(int argc, char **argv)
       else if (strcmp(cmd, "c") == 0)
       {
           peerclient->start_peer_communication();
-          for (;;) {}
+          pthread_join(peerclient->get_recv_thread_id(), NULL);
       }
       else if (strcmp(cmd, "q") == 0)
       {
