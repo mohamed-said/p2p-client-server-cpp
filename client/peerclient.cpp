@@ -29,6 +29,16 @@ pthread_t PeerClient::get_recv_thread_id()
 /** returns 0 for success or error_code for errors */
 int PeerClient::init()
 {
+    /** creating a UDP socket file descriptor */
+    udp_socket_fd = socket(AF_INET, SOCK_DGRAM, 0);
+    if (udp_socket_fd < 0)
+    {
+        fprintf(stderr, " * ERROR, creating the UDP socket\n");
+        return errno;
+    }
+
+    puts(" ** UDP socket created");
+
     memset(tcp_message_buffer, 0, MAX_TCP_MSG_SIZE + 1);
     memset(udp_message_buffer, 0, MAX_UDP_MSG_SIZE + 1);
     memset(&tcp_server_socket_address, 0, sizeof(tcp_server_socket_address));
@@ -308,15 +318,15 @@ int PeerClient::send_peer_connection_request()
 int PeerClient::send_udp_first_msg()
 {
     puts(" ** Sending UDP first message");
-    /** creating a UDP socket file descriptor */
-    udp_socket_fd = socket(AF_INET, SOCK_DGRAM, 0);
-    if (udp_socket_fd < 0)
-    {
-        fprintf(stderr, " * ERROR, creating the UDP socket\n");
-        return errno;
-    }
+//    /** creating a UDP socket file descriptor */
+//    udp_socket_fd = socket(AF_INET, SOCK_DGRAM, 0);
+//    if (udp_socket_fd < 0)
+//    {
+//        fprintf(stderr, " * ERROR, creating the UDP socket\n");
+//        return errno;
+//    }
 
-    puts(" ** UDP socket created");
+//    puts(" ** UDP socket created");
 
     strcpy(udp_message_buffer, my_username);
 
