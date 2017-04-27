@@ -12,6 +12,7 @@ void get_username()
 {
     puts("Please Enter a username (max 20 chars) : ");
     fgets(username, 20, stdin);
+    username[strlen(username) - 1] = '\0';
     printf("[DEBUGGING][main][get_username][username]: %s\n", username);
 }
 
@@ -67,7 +68,8 @@ int main(int argc, char **argv)
         puts("Register (r) | Request Peer (rp) | Connect (c) | Quit (q)");
         puts("-----------------------------------------");
         printf("cmd: ");
-        scanf("%s", cmd);
+        fgets(cmd, 20, stdin);
+        cmd[strlen(cmd) - 1] = '\0';
         if (strcmp(cmd, "r") == 0)
         {
             get_username();
