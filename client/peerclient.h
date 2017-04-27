@@ -48,6 +48,9 @@ public:
     /* Constructor */
     PeerClient(char*, int16_t, int16_t);
 
+    /* Destructor */
+    ~PeerClient();
+
     /* Initializes messaging buffers and socket addresses */
     int init();
 

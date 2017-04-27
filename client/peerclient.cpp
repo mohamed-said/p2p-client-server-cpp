@@ -9,6 +9,13 @@ PeerClient::PeerClient(char *p_server_name, int16_t p_tcp_port_number, int16_t p
     my_username = new char[21];
 }
 
+PeerClient::~PeerClient()
+{
+    delete server;
+    delete server_name;
+    delete my_username;
+}
+
 pthread_t PeerClient::get_send_thred_id()
 {
     return send_thread_id;
@@ -59,7 +66,7 @@ void *PeerClient::run_p2p_send(PeerClient *__peer_client)
     printf("You: ");
     while (1)
     {
-        scanf("%s", message_buffer);
+        fgets(message_buffer, 64, stdin);
         int16_t sendto_error = sendto(__peer_client->udp_socket_fd, message_buffer, 64, 0,
                                       (sockaddr*) &__peer_client->peer_udp_socket_data,
                                       sizeof(__peer_client->peer_udp_socket_data));
@@ -219,13 +226,15 @@ int PeerClient::send_peer_connection_request()
     } else if (strcmp(tcp_message_buffer, "SENDUSERNAME") == 0)
     {
         puts("Please enter a username to connect to (max 20 chars): ");
-        short chr_count = scanf("%s", peer_username);
+        fgets(peer_username, 20, stdin);
+        /*short chr_count = scanf("%s", peer_username);
         while (chr_count > 20)
         {
             puts("Please Enter a valid username (max 20 chars) : ");
             memset(peer_username, 0, 20);
             chr_count = scanf("%s", peer_username);
         }
+        */
         puts("Thanks\n");
 
         strcpy(tcp_message_buffer, peer_username);
