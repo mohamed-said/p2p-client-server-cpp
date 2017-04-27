@@ -66,14 +66,14 @@ void *PeerClient::run_p2p_send(PeerClient *__peer_client)
 void *PeerClient::run_p2p_recv(PeerClient *__peer_client)
 {
     char message_buffer[64];
+    socklen_t addr_size = sizeof(__peer_client->peer_udp_socket_data);
     while (1)
     {
         memset(message_buffer, 0, 64);
-        memset(&__peer_client->peer_udp_socket_data, 0, sizeof(__peer_client->peer_udp_socket_data));
         int16_t recvfrom_error = recvfrom(__peer_client->udp_socket_fd, message_buffer,
                                           64, MSG_CONFIRM,
                                           (sockaddr*) &__peer_client->peer_udp_socket_data,
-                                          (socklen_t*) sizeof(__peer_client->peer_udp_socket_data));
+                                           &addr_size);
         if (recvfrom_error == -1)
         {
             fprintf(stderr, " * ERROR, receiving message from peer\n");
