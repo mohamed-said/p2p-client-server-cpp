@@ -68,6 +68,8 @@ void *PeerClient::run_p2p_recv(PeerClient *__peer_client)
     char message_buffer[64];
     while (1)
     {
+        memset(message_buffer, 0, 64);
+        memset(__peer_client->peer_udp_socket_data, 0, sizeof(__peer_client->peer_udp_socket_data));
         int16_t recvfrom_error = recvfrom(__peer_client->udp_socket_fd, message_buffer,
                                           64, MSG_CONFIRM,
                                           (sockaddr*) &__peer_client->peer_udp_socket_data,
@@ -76,6 +78,10 @@ void *PeerClient::run_p2p_recv(PeerClient *__peer_client)
         {
             fprintf(stderr, " * ERROR, receiving message from peer\n");
             printf(" * (errno) -> %d\n", errno);
+            printf("Address: %s\n", inet_ntoa(__peer_client->peer_udp_socket_data.sin_addr));
+            printf("Port: %d\n", ntoas(__peer_client->peer_udp_socket_data.sin_port));
+            ptrintf("Message Buffer: %s\n", message_buffer);
+
         }
         else
         {
