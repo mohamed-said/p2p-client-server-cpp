@@ -7,6 +7,8 @@
 #include <string>
 #include <string.h>
 
+#include "encryption_methods.h"
+
 #define MAX_TCP_MSG_SIZE 1400
 #define MAX_UDP_MSG_SIZE 64
 
@@ -42,6 +44,7 @@ private:
     pthread_t send_thread_id;
     pthread_t recv_thread_id;
 
+    encryption_methods *crypto;
 
 public:
 

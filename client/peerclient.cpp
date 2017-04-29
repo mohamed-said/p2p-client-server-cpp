@@ -7,6 +7,7 @@ PeerClient::PeerClient(char *p_server_name, int16_t p_tcp_port_number, int16_t p
     udp_port_number = p_udp_port_number;
     server_name = p_server_name;
     my_username = new char[21];
+    crypto = new encryption_methods();
 }
 
 PeerClient::~PeerClient()
@@ -73,11 +74,14 @@ int PeerClient::init()
 void *PeerClient::run_p2p_send(PeerClient *__peer_client)
 {
     char message_buffer[64];
+    int16_t crypto_key = __peer_client->crypto->generate_key(__peer_client->my_username);
     printf("You: ");
     while (1)
     {
         fgets(message_buffer, 64, stdin);
         message_buffer[strlen(message_buffer) - 1] = '\0';
+        // here we encrypt the message
+        __peer_client->crypto->encrypt_message(message_buffer, crypto_key);
         int16_t sendto_error = sendto(__peer_client->udp_socket_fd, message_buffer, 64, 0,
                                       (sockaddr*) &__peer_client->peer_udp_socket_data,
                                       sizeof(__peer_client->peer_udp_socket_data));
@@ -93,6 +97,7 @@ void *PeerClient::run_p2p_send(PeerClient *__peer_client)
 void *PeerClient::run_p2p_recv(PeerClient *__peer_client)
 {
     char message_buffer[64];
+    int16_t crypto_key = __peer_client->crypto->generate_key(__peer_client->peer_username);
     socklen_t addr_size = sizeof(__peer_client->peer_udp_socket_data);
     while (1)
     {
@@ -112,6 +117,8 @@ void *PeerClient::run_p2p_recv(PeerClient *__peer_client)
         }
         else
         {
+            // here we decrypt the message
+            __peer_client->crypto->decrypt_message(message_buffer, crypto_key);
             printf("\n%s: %s\n", __peer_client->peer_username, message_buffer);
             printf("You: ");
         }
@@ -121,7 +128,6 @@ void *PeerClient::run_p2p_recv(PeerClient *__peer_client)
 
 int PeerClient::start_peer_communication()
 {
-
     int16_t pthread_error_send = pthread_create(&send_thread_id, 0, (void*(*)(void*))run_p2p_send, this);
     if (pthread_error_send)
     {
@@ -138,7 +144,6 @@ int PeerClient::start_peer_communication()
 
     return 0;
 }
-
 
 /**
  * TCP message

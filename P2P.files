@@ -26,3 +26,5 @@ README.md
 main.cpp
 client/peerclient.cpp
 client/main.cpp
+client/encryption_methods.h
+client/encryption_methods.cpp

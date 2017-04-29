@@ -2,7 +2,7 @@ CC= g++
 cflags= -Wall -g
 clibs= -lm -lpthread
 targets= p2p_client
-objs= peerclient.o main.o
+objs= peerclient.o main.o encryption_methods.o
 
 all: ${targets}
 
