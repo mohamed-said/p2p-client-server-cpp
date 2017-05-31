@@ -222,8 +222,8 @@ void* CommunicationServer::handle_peer_tcp_connection(CommunicationServer *__ser
         else
         {
             printf(" * Username received ...\n");
-            printf("[DEBUGGING][handle_peer_tcp_connection][message buffer]: %s\n", __server_obj->message_buffer);
-            printf("[DEBUGGING][handle_peer_tcp_connection][message buffer]: length: %d\n", read_error);
+            printf(BLU "[DEBUGGING][handle_peer_tcp_connection][message buffer]: %s\n" RESET, __server_obj->message_buffer);
+            printf(BLU "[DEBUGGING][handle_peer_tcp_connection][message buffer]: length: %d\n" RESET, read_error);
 /*
             for (int i = 0; i < MAX_MSG_SIZE; i++)
             {
@@ -238,12 +238,12 @@ void* CommunicationServer::handle_peer_tcp_connection(CommunicationServer *__ser
 
         if (peer_data == NULL)
         {
-            puts("Username not found!!!");
+            puts(RED "Username not found!!!" RESET);
             strcpy(__server_obj->message_buffer, "USERNAMENOTFOUND");
         }
         else
         {
-            printf(" * Username \" %s \" found.\n", __server_obj->message_buffer);
+            printf(GRN " * Username \" %s \" found.\n" RESET, __server_obj->message_buffer);
 
             memset(__server_obj->message_buffer, 0, MAX_MSG_SIZE + 1);
             // copy the peer data to a byte array buffer to send back to the requesting client
@@ -271,19 +271,19 @@ void* CommunicationServer::handle_peer_tcp_connection(CommunicationServer *__ser
 
         if (send_error == -1)
         {
-            fprintf(stderr, " * ERROR, sending peer details\n");
-            printf(" * (errno) -> %d\n", errno);
+            fprintf(stderr, RED " * ERROR, sending peer details\n" RESET);
+            printf(RED " * (errno) -> %d\n" RESET, errno);
         }
         else
         {
-            puts("Response sent successfully.");
+            puts(GRN "Response sent successfully." RESET);
             puts("----------------------------");
         }
 
     }
     else
     {
-        puts("Unknown Command or Request");
+        puts(RED "Unknown Command or Request" RESET);
         return (void*) NULL;
     }
 
